@@ -15,15 +15,21 @@ export interface Comment {
 
 interface CommentSectionProps {
   comments: Comment[];
+  onCommentSubmit?: (author: string, content: string) => void;
 }
 
-export function CommentSection({ comments }: CommentSectionProps) {
+export function CommentSection({ comments, onCommentSubmit }: CommentSectionProps) {
   const { t } = useLanguage();
   const [name, setName] = useState("");
   const [comment, setComment] = useState("");
 
   const handleSubmit = () => {
-    console.log("Comment submitted:", { name, comment });
+    if (!name.trim() || !comment.trim()) return;
+    
+    if (onCommentSubmit) {
+      onCommentSubmit(name, comment);
+    }
+    
     setName("");
     setComment("");
   };

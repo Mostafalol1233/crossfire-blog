@@ -1,4 +1,5 @@
 import { useParams, Link } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Clock, Eye, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,180 +7,77 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ArticleCard, type Article } from "@/components/ArticleCard";
 import { CommentSection, type Comment } from "@/components/CommentSection";
 import { useLanguage } from "@/components/LanguageProvider";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import tutorialImage from "@assets/generated_images/Tutorial_article_cover_image_2152de25.png";
-import newsImage from "@assets/generated_images/News_article_cover_image_13b95cee.png";
 
 export default function Article() {
   const { id } = useParams();
   const { t } = useLanguage();
 
-  const article = {
-    id: id || "1",
-    title: "Building Modern Web Applications with React and TypeScript",
-    content: `
-## Introduction
+  const { data: article, isLoading } = useQuery<any>({
+    queryKey: ["/api/posts", id],
+    enabled: !!id,
+  });
 
-TypeScript has become an essential tool for building robust React applications. In this comprehensive guide, we'll explore the best practices and patterns for combining these two powerful technologies.
+  const { data: comments = [] } = useQuery<Comment[]>({
+    queryKey: ["/api/posts", id, "comments"],
+    enabled: !!id,
+  });
 
-## Why TypeScript with React?
+  const { data: allPosts = [] } = useQuery<Article[]>({
+    queryKey: ["/api/posts"],
+  });
 
-TypeScript brings type safety to your React components, catching errors at compile time rather than runtime. This leads to more maintainable code and better developer experience.
+  const addCommentMutation = useMutation({
+    mutationFn: (data: { author: string; content: string }) =>
+      apiRequest(`/api/posts/${id}/comments`, "POST", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/posts", id, "comments"],
+      });
+    },
+  });
 
-### Key Benefits
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading article...</p>
+      </div>
+    );
+  }
 
-1. **Type Safety**: Catch errors before they reach production
-2. **Better IDE Support**: Enhanced autocomplete and refactoring
-3. **Self-Documenting Code**: Types serve as inline documentation
-4. **Easier Refactoring**: Change with confidence
+  if (!article) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Article not found</p>
+          <Button asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-## Setting Up Your Project
+  const relatedArticles = allPosts
+    .filter(
+      (post) =>
+        post.id !== article.id &&
+        (post.category === article.category ||
+          post.tags.some((tag: string) => article.tags.includes(tag)))
+    )
+    .slice(0, 3);
 
-Start with a new React project using Vite:
-
-\`\`\`bash
-npm create vite@latest my-app -- --template react-ts
-cd my-app
-npm install
-\`\`\`
-
-## Component Patterns
-
-### Functional Components with Props
-
-Here's how to properly type a functional component:
-
-\`\`\`typescript
-interface ButtonProps {
-  label: string;
-  onClick: () => void;
-  variant?: 'primary' | 'secondary';
-}
-
-const Button: React.FC<ButtonProps> = ({ label, onClick, variant = 'primary' }) => {
-  return (
-    <button onClick={onClick} className={\`btn btn-\${variant}\`}>
-      {label}
-    </button>
-  );
-};
-\`\`\`
-
-### Using Hooks with TypeScript
-
-TypeScript works seamlessly with React hooks:
-
-\`\`\`typescript
-const [count, setCount] = useState<number>(0);
-const [user, setUser] = useState<User | null>(null);
-\`\`\`
-
-## Advanced Patterns
-
-### Generic Components
-
-Create reusable components with generics:
-
-\`\`\`typescript
-interface ListProps<T> {
-  items: T[];
-  renderItem: (item: T) => React.ReactNode;
-}
-
-function List<T>({ items, renderItem }: ListProps<T>) {
-  return <div>{items.map(renderItem)}</div>;
-}
-\`\`\`
-
-## Best Practices
-
-1. Always define prop types with interfaces
-2. Use strict mode in tsconfig.json
-3. Leverage type inference when possible
-4. Create custom hooks with proper typing
-
-## Conclusion
-
-TypeScript and React together provide a powerful foundation for building scalable applications. Start small, and gradually adopt more advanced patterns as your application grows.
-    `,
-    category: "Tutorials",
-    image: tutorialImage,
-    author: "Bimora Team",
-    authorBio: "Expert developers passionate about modern web technologies",
-    date: "Jan 15, 2025",
-    readingTime: 8,
-    views: 15420,
-    tags: ["React", "TypeScript", "Web Dev", "Tutorial"],
+  const handleCommentSubmit = (author: string, content: string) => {
+    addCommentMutation.mutate({ author, content });
   };
 
-  const relatedArticles: Article[] = [
-    {
-      id: "2",
-      title: "Complete Guide to TypeScript Generics",
-      summary:
-        "Master TypeScript generics with practical examples and best practices.",
-      category: "Tutorials",
-      image: tutorialImage,
-      author: "Sarah Johnson",
-      date: "Jan 12, 2025",
-      readingTime: 6,
-      views: 8230,
-      tags: ["TypeScript", "Programming"],
-    },
-    {
-      id: "3",
-      title: "Advanced React Patterns and Techniques",
-      summary:
-        "Dive deep into compound components and custom hooks for flexible UIs.",
-      category: "Tutorials",
-      image: tutorialImage,
-      author: "David Wilson",
-      date: "Jan 3, 2025",
-      readingTime: 10,
-      views: 11200,
-      tags: ["React", "Advanced"],
-    },
-    {
-      id: "4",
-      title: "Top 10 Web Development Trends for 2025",
-      summary:
-        "Explore the latest trends shaping the future of web development.",
-      category: "News",
-      image: newsImage,
-      author: "Michael Chen",
-      date: "Jan 10, 2025",
-      readingTime: 5,
-      views: 12350,
-      tags: ["Trends", "Web Dev"],
-    },
-  ];
-
-  const comments: Comment[] = [
-    {
-      id: "1",
-      name: "John Doe",
-      content:
-        "Great article! Very informative and well-written. The TypeScript examples were particularly helpful. Looking forward to more content like this.",
-      date: "2 hours ago",
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      content:
-        "Thanks for sharing this. The code examples were really clear and easy to follow. I've bookmarked this for future reference.",
-      date: "5 hours ago",
-    },
-    {
-      id: "3",
-      name: "Ahmed Hassan",
-      content:
-        "Excellent tutorial! This helped me understand TypeScript generics much better. Keep up the great work!",
-      date: "1 day ago",
-    },
-  ];
-
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
         <Button
           variant="ghost"
           asChild
@@ -188,113 +86,101 @@ TypeScript and React together provide a powerful foundation for building scalabl
         >
           <Link href="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            {t("backToHome")}
           </Link>
         </Button>
 
-        <article className="max-w-4xl mx-auto">
-          <header className="mb-8 md:mb-12">
-            <div className="flex flex-wrap gap-2 mb-4">
+        <article>
+          <div className="mb-8 md:mb-12">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <Badge variant="default" data-testid="badge-category">
                 {article.category}
               </Badge>
-              {article.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  data-testid={`badge-tag-${tag.toLowerCase()}`}
-                >
+              {article.tags.map((tag: string) => (
+                <Badge key={tag} variant="outline" data-testid={`badge-tag-${tag}`}>
                   {tag}
                 </Badge>
               ))}
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+            <h1
+              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6"
+              data-testid="text-article-title"
+            >
               {article.title}
             </h1>
 
-            <div className="flex items-start gap-4 p-6 bg-card rounded-lg border mb-8">
-              <Avatar className="h-12 w-12 md:h-16 md:w-16">
-                <AvatarFallback className="text-lg">
-                  {article.author.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="font-semibold text-lg mb-1">
-                  {article.author}
-                </div>
-                <div className="text-sm text-muted-foreground mb-3">
-                  {article.authorBio}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  <span>{article.date}</span>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      {article.readingTime} {t("readingTime")}
-                    </span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>{article.views.toLocaleString()} {t("views")}</span>
-                  </div>
-                </div>
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground mb-8">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    {article.author
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span data-testid="text-author">{article.author}</span>
               </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span data-testid="text-reading-time">{article.readingTime} min read</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                <span data-testid="text-views">{article.views} views</span>
+              </div>
+              <span data-testid="text-date">{article.date}</span>
             </div>
 
-            <div className="aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden rounded-lg">
+            {article.image && (
               <img
                 src={article.image}
                 alt={article.title}
-                className="w-full h-full object-cover"
+                className="w-full h-64 md:h-96 object-cover rounded-md mb-8"
+                data-testid="img-article-cover"
               />
-            </div>
-          </header>
-
-          <div
-            className="prose prose-lg dark:prose-invert max-w-none mb-12 md:mb-20"
-            dangerouslySetInnerHTML={{
-              __html: article.content
-                .split("\n")
-                .map((line) => {
-                  if (line.startsWith("## ")) {
-                    return `<h2 class="text-2xl md:text-3xl font-semibold mt-12 mb-4">${line.slice(3)}</h2>`;
-                  }
-                  if (line.startsWith("### ")) {
-                    return `<h3 class="text-xl md:text-2xl font-semibold mt-8 mb-3">${line.slice(4)}</h3>`;
-                  }
-                  if (line.startsWith("```")) {
-                    return line.includes("```bash")
-                      ? '<pre class="bg-muted p-4 rounded-lg overflow-x-auto my-4"><code class="font-mono text-sm">'
-                      : line.includes("```typescript")
-                      ? '<pre class="bg-muted p-4 rounded-lg overflow-x-auto my-4"><code class="font-mono text-sm">'
-                      : "</code></pre>";
-                  }
-                  if (line.match(/^\d+\./)) {
-                    return `<li class="ml-6">${line.slice(line.indexOf(".") + 2)}</li>`;
-                  }
-                  if (line.trim() === "") return "<br/>";
-                  return `<p class="leading-relaxed my-4">${line}</p>`;
-                })
-                .join(""),
-            }}
-          />
-
-          <div className="border-t pt-12 md:pt-20 mb-12 md:mb-20">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-8">
-              {t("relatedArticles")}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {relatedArticles.map((relatedArticle) => (
-                <ArticleCard key={relatedArticle.id} article={relatedArticle} />
-              ))}
-            </div>
+            )}
           </div>
 
-          <div className="border-t pt-12 md:pt-20">
-            <CommentSection comments={comments} />
+          {article.summary && (
+            <div className="bg-card border border-border rounded-md p-6 mb-8">
+              <p className="text-lg text-foreground font-medium" data-testid="text-summary">
+                {article.summary}
+              </p>
+            </div>
+          )}
+
+          <div
+            className="prose prose-lg dark:prose-invert max-w-none mb-12"
+            dangerouslySetInnerHTML={{
+              __html: article.content.replace(/\n/g, "<br />"),
+            }}
+            data-testid="content-article-body"
+          />
+
+          {relatedArticles.length > 0 && (
+            <div className="border-t pt-12 mt-12">
+              <h2 className="text-2xl md:text-3xl font-semibold mb-8">
+                {t("relatedArticles")}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedArticles.map((relatedArticle) => (
+                  <ArticleCard
+                    key={relatedArticle.id}
+                    article={relatedArticle}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t pt-12 mt-12">
+            <CommentSection
+              comments={comments}
+              onCommentSubmit={handleCommentSubmit}
+            />
           </div>
         </article>
       </div>

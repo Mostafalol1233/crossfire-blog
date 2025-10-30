@@ -145,9 +145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comment routes
-  app.get("/api/comments/:postId", async (req, res) => {
+  app.get("/api/posts/:id/comments", async (req, res) => {
     try {
-      const comments = await storage.getCommentsByPostId(req.params.postId);
+      const comments = await storage.getCommentsByPostId(req.params.id);
       
       const formattedComments = comments.map((comment) => ({
         ...comment,
@@ -160,9 +160,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comments", async (req, res) => {
+  app.post("/api/posts/:id/comments", async (req, res) => {
     try {
-      const data = insertCommentSchema.parse(req.body);
+      const { id } = req.params;
+      const { author, content } = req.body;
+      
+      const commentData = {
+        postId: id,
+        name: author,
+        content,
+      };
+      
+      const data = insertCommentSchema.parse(commentData);
       const comment = await storage.createComment(data);
       
       const formattedComment = {
