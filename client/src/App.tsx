@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,8 @@ import Home from "@/pages/Home";
 import Article from "@/pages/Article";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import Admin from "@/pages/Admin";
+import AdminLogin from "@/pages/AdminLogin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,8 +22,29 @@ function Router() {
       <Route path="/article/:id" component={Article} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function Layout() {
+  const [location] = useLocation();
+  const isAdminPage = location.startsWith("/admin");
+
+  if (isAdminPage) {
+    return <Router />;
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1">
+        <Router />
+      </main>
+      <Footer />
+    </div>
   );
 }
 
@@ -31,13 +54,7 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <LanguageProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">
-                <Router />
-              </main>
-              <Footer />
-            </div>
+            <Layout />
             <Toaster />
           </LanguageProvider>
         </ThemeProvider>
