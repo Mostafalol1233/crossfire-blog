@@ -78,7 +78,8 @@ export class MemStorage implements IStorage {
   async createPost(insertPost: InsertPost): Promise<Post> {
     const id = randomUUID();
     const post: Post = { 
-      ...insertPost, 
+      ...insertPost,
+      featured: insertPost.featured ?? false,
       id,
       views: 0,
       createdAt: new Date()
