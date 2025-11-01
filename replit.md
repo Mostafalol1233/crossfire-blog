@@ -160,10 +160,16 @@ Preferred communication style: Simple, everyday language.
 ### CrossFire Gaming Transformation & Platform Enhancements
 - **Rebranding**: Changed site name from "Bimora"/"Bemora" to "Biomera" across all pages and components
 - **News Page**: Created CrossFire-style news grid with featured hero card, hover effects, and static display (no navigation)
-- **Mercenaries Page**: Implemented character showcase gallery with smooth hover-to-enlarge effect using CSS scale transforms
+- **Mercenaries Page**: Implemented character showcase gallery with smooth hover-to-enlarge effect using CSS scale transforms, increased width from 140px to 200px for better visibility and clarity
 - **Navigation**: Added News and Mercenaries links to main navigation menu
 - **Mock Data**: Populated storage with CrossFire-themed news items (6 items) and mercenary characters (10 items)
 - **Visual Design**: Enhanced hover interactions while maintaining layout stability (no layout shifts on hover)
 - **Static Asset Serving**: Fixed image serving by implementing Express static middleware for `attached_assets/` folder using proper ESM path resolution (fileURLToPath instead of import.meta.dirname)
 - **CrossFire 2025 Roadmap Article**: Created comprehensive article with real game content including new maps (Mid Line, Underground Raid, Maze, Cross Zone, Museum 13), weapons (Classic series, TMP Predator, AR57 Tactical, Kukri, themed collections), characters (Clara-Victorious, JON Lotus, Kaia, Game Girl, Veteran Hero), CrossFire Pass Season 9, CrossFire: Legends beta, Esports World Cup 2025, and quality-of-life improvements
 - **Image Upload Feature**: Added catbox.moe integration to admin dashboard with authenticated multipart POST endpoint (`/api/upload-image`), file selection UI, upload progress indicator, and copyable public URL output for easy image hosting
+
+### Admin Dashboard Improvements (November 2025)
+- **Rich Text Editor**: Integrated ReactQuill WYSIWYG editor for post content creation, replacing basic textarea with full formatting toolbar (headers, bold, italic, underline, lists, links, blockquotes, code blocks). Supports copy-paste with preserved formatting and easy manual text editing like Microsoft Word
+- **Events Image Support**: Added optional image URL field to events schema, storage interface, and admin form for enhanced event presentation
+- **Frontend Route Protection**: Implemented client-side authentication guard that redirects unauthenticated users from /admin to /admin/login, working in tandem with existing JWT backend protection
+- **Enhanced Security**: Admin dashboard now has both frontend (localStorage token check) and backend (JWT verification middleware) protection layers
