@@ -430,7 +430,11 @@ Stay tuned to official channels for the latest updates, and prepare for the most
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = randomUUID();
-    const event: Event = { ...insertEvent, id };
+    const event: Event = { 
+      ...insertEvent, 
+      id,
+      image: insertEvent.image || ""
+    };
     this.events.set(id, event);
     return event;
   }

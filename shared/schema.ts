@@ -37,6 +37,7 @@ export const events = pgTable("events", {
   title: text("title").notNull(),
   date: text("date").notNull(),
   type: text("type").notNull(),
+  image: text("image").notNull().default(""),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

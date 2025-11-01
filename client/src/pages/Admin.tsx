@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,21 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      setLocation("/admin/login");
+    }
+  }, [setLocation]);
 
   const [postForm, setPostForm] = useState({
     title: "",
@@ -50,6 +59,7 @@ export default function Admin() {
     title: "",
     date: "",
     type: "upcoming" as "upcoming" | "trending",
+    image: "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -126,7 +136,7 @@ export default function Admin() {
     mutationFn: (data: any) => apiRequest("/api/events", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      setEventForm({ title: "", date: "", type: "upcoming" });
+      setEventForm({ title: "", date: "", type: "upcoming", image: "" });
       toast({ title: "Event created successfully" });
     },
     onError: () => {
@@ -288,17 +298,28 @@ export default function Admin() {
                       data-testid="input-post-title"
                     />
                     <div className="space-y-2">
-                      <Textarea
-                        placeholder="Content (Markdown supported - **bold**, *italic*, # Heading, etc.)"
-                        value={postForm.content}
-                        onChange={(e) =>
-                          setPostForm({ ...postForm, content: e.target.value })
-                        }
-                        rows={10}
-                        data-testid="input-post-content"
-                      />
+                      <div data-testid="input-post-content">
+                        <ReactQuill
+                          theme="snow"
+                          value={postForm.content}
+                          onChange={(value) =>
+                            setPostForm({ ...postForm, content: value })
+                          }
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              ['link', 'blockquote', 'code-block'],
+                              ['clean']
+                            ],
+                          }}
+                          placeholder="Write your content here... Format text easily with the toolbar above"
+                          style={{ minHeight: '300px' }}
+                        />
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        Markdown formatting: **bold**, *italic*, # Heading, - List, [link](url). Emojis and special characters are supported in content.
+                        Use the toolbar to format your text. Copy and paste formatted content to preserve its styling.
                       </p>
                     </div>
                     <Textarea
@@ -530,6 +551,14 @@ export default function Admin() {
                     setEventForm({ ...eventForm, date: e.target.value })
                   }
                   data-testid="input-event-date"
+                />
+                <Input
+                  placeholder="Image URL (optional)"
+                  value={eventForm.image}
+                  onChange={(e) =>
+                    setEventForm({ ...eventForm, image: e.target.value })
+                  }
+                  data-testid="input-event-image"
                 />
                 <select
                   value={eventForm.type}
