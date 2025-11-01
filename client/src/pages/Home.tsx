@@ -11,7 +11,6 @@ import tutorialImage from "@assets/generated_images/Tutorial_article_cover_image
 
 export default function Home() {
   const { t } = useLanguage();
-  const [activeCategory, setActiveCategory] = useState<Category>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: allPosts = [] } = useQuery<Article[]>({
@@ -24,12 +23,12 @@ export default function Home() {
 
   const heroPost = allPosts.find((p) => p.featured) || {
     id: "1",
-    title: "Welcome to Bimora Gaming Blog",
+    title: "Welcome to Biomera Gaming Blog",
     summary:
       "Your source for CrossFire gaming news, character guides, and community updates. Create your first post in the admin dashboard!",
     category: "Tutorials",
     image: tutorialImage,
-    author: "Bimora Team",
+    author: "Biomera Team",
     date: "Today",
     readingTime: 1,
     views: 0,
@@ -37,9 +36,6 @@ export default function Home() {
 
   const filteredArticles = useMemo(() => {
     return allPosts.filter((article) => {
-      const matchesCategory =
-        activeCategory === "all" ||
-        article.category.toLowerCase() === activeCategory;
       const matchesSearch =
         searchQuery === "" ||
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,9 +43,9 @@ export default function Home() {
         article.tags.some((tag) =>
           tag.toLowerCase().includes(searchQuery.toLowerCase())
         );
-      return matchesCategory && matchesSearch;
+      return matchesSearch;
     });
-  }, [allPosts, activeCategory, searchQuery]);
+  }, [allPosts, searchQuery]);
 
   const recentPosts = useMemo(() => {
     return allPosts.slice(0, 3).map((post) => ({
@@ -117,8 +113,8 @@ export default function Home() {
               </div>
 
               <CategoryFilter
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
+                activeCategory="all"
+                useNavigation={true}
               />
             </div>
 

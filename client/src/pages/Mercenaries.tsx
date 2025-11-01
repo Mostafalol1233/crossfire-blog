@@ -44,7 +44,7 @@ export default function Mercenaries() {
                 key={merc.id}
                 className="relative group overflow-visible"
                 style={{
-                  width: "220px",
+                  width: "140px",
                   flexShrink: 0,
                 }}
                 onMouseEnter={() => setHoveredId(merc.id)}
@@ -52,9 +52,9 @@ export default function Mercenaries() {
                 data-testid={`mercenary-${merc.id}`}
               >
                 <div
-                  className="relative h-[600px] overflow-hidden transition-all duration-500"
+                  className="relative h-[450px] overflow-hidden transition-all duration-500"
                   style={{
-                    transform: hoveredId === merc.id ? "scale(2)" : "scale(1)",
+                    transform: hoveredId === merc.id ? "scale(1.8)" : "scale(1)",
                     zIndex: hoveredId === merc.id ? 10 : 1,
                   }}
                 >

@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { ArticleCard, type Article } from "@/components/ArticleCard";
 import { Sidebar } from "@/components/Sidebar";
 import { useLanguage } from "@/components/LanguageProvider";
+import { CategoryFilter, type Category } from "@/components/CategoryFilter";
 
 export default function Category() {
   const { t } = useLanguage();
@@ -101,6 +102,11 @@ export default function Category() {
               >
                 {t("browsing")} {categoryTitle.toLowerCase()} {t("articles")}
               </p>
+              
+              <CategoryFilter
+                activeCategory={category?.toLowerCase() as Category || "all"}
+                useNavigation={true}
+              />
             </div>
 
             {filteredArticles.length === 0 ? (

@@ -237,6 +237,532 @@ Stay tuned to official channels for the latest updates, and prepare for the most
       }
     ];
 
+    initialPosts.push(
+      {
+        id: "ewc-2025-crossfire",
+        title: "CrossFire at 2025 Esports World Cup: The Battle for Glory",
+        content: `# CROSSFIRE at 2025 Esports World Cup: August 15th - 24th
+
+## Attention Mercenaries!
+
+**THE BATTLE FOR GLORY STARTS NOW!** The **2025 Esports World Cup** is officially underway, and the stage is set for a world-class head-to-head battle! To celebrate the kickoff, the **Champions Pass** is back with exciting rewards!
+
+## Event Details
+
+From **August 15th until the 24th**, dive into the action via the in-game **Esports Tab** — cheer on your favorite teams, complete epic Missions, and level up your pass to score **items, crates, and characters**. Let the hype begin!
+
+## Champions Pass Rewards
+
+Progress through 20 levels of exclusive rewards:
+
+### Level 1-5
+- Champions Pass
+- Bulletproof Package 14 Days
+- Survival Gear 7 days
+- 5 CFS Energy Crates
+- 5 CFS Brave Crates
+
+### Level 6-10
+- CFS Festival Weapons 7 Days
+- 5 CFS Festival Crates
+- CFS Triumph Weapons 7 Days
+- 5 CFS Triumph Crates
+- 5 CFS Hero Crates
+
+### Level 11-15
+- 5 CFS Fervor Crates
+- CFS Bliss Weapons 30 Days
+- 5 CFS Bliss Crates
+- Katy 30 days
+- 5 CFS Aurora Crates
+
+### Level 16-20
+- CFS24 GF Weapons 30 Days
+- 10 CFS24 GF Crates
+- 10 CFS Galaxy Crates
+- Gigi 30 days
+- **EWC x CF Champion 2025 Rewards**
+
+## Watch the Action Live
+
+### EWC Stream Schedule
+
+The tournament features top teams from around the globe competing for a **$2 million USD prize pool**!
+
+**Stream Times (ET):**
+- August 19-22: Watch Missions between 4:00 AM - 12:00 PM
+- August 23: Watch Missions between 3:00 AM - 12:30 PM
+
+**Watch the stream in-game** to qualify for the events and catch all the action live! You can also watch on Twitch and share with your friends.
+
+## Location & Format
+
+- **Location**: Riyadh, Saudi Arabia
+- **Prize Pool**: $2 million USD
+- **Format**: Teams from across the globe competing in the highest-level CROSSFIRE tournament
+- **Special Event**: Champions Pass rewards including exclusive weapons, crates, and character items
+
+## How to Participate
+
+1. Launch CrossFire and navigate to the Esports Tab
+2. Complete daily missions during the tournament
+3. Watch live streams to earn bonus rewards
+4. Level up your Champions Pass for exclusive items
+5. Support your favorite teams!
+
+Don't miss out on this historic World Cup event, Mercenaries!
+
+**- CrossFire Team**`,
+        summary: "CrossFire makes its debut at the 2025 Esports World Cup in Riyadh with a $2M prize pool, Champions Pass rewards, and exclusive in-game content from August 15-24.",
+        image: "/assets/news-superfans.jpg",
+        category: "Events",
+        tags: ["Esports", "World Cup", "Tournament", "Champions Pass", "Rewards"],
+        author: "[GM]Xenon",
+        featured: false,
+        readingTime: 5,
+        views: 8934,
+        createdAt: new Date("2025-10-30")
+      },
+      {
+        id: "16bit-weapons-release",
+        title: "16-Bit Retro Weapons Collection: Gaming Nostalgia Meets Modern Warfare",
+        content: `# 16-Bit Weapons: A Pixel Perfect Arsenal
+
+## Nostalgia Hits Different
+
+Get ready to relive the golden age of gaming! CrossFire is thrilled to announce the release of the **16-Bit Weapons Collection** - a stunning tribute to classic video game aesthetics that brings retro pixel art into modern tactical combat.
+
+## The Collection
+
+Released on **September 30th**, this limited-time collection transforms your arsenal into works of pixelated perfection:
+
+### Featured Weapons
+
+**Assault Rifles:**
+- **AK-47-16Bit**: The legendary assault rifle reimagined with vibrant pixel art
+- **M4A1-16Bit**: Tactical precision meets retro design
+
+**Sniper Rifles:**
+- **Barrett M82A1-Prismatic Demon**: A devastating sniper with holographic pixel effects
+- **AWM-16Bit**: Long-range dominance in 8-bit glory
+
+**SMGs:**
+- **MP5-16Bit**: Close-quarters combat with arcade-style flair
+- **P90-16Bit**: Futuristic meets retro
+
+### Special Melee Weapons
+- **Banana Knife Pop Art**: A playful addition to the retro arsenal
+- **Mini Watercolor Melee**: Artistic expression in combat
+
+## Visual Design
+
+Each weapon features:
+- **Authentic pixel art** inspired by 16-bit era gaming
+- **Vibrant color palettes** with neon accents
+- **Animated effects** that pulse and glow
+- **Unique kill markers** with retro game sounds
+- **Custom reload animations** with pixel transitions
+
+## How to Obtain
+
+The 16-Bit Weapons are available through:
+
+### 16-Bit Crates
+- Available in the Black Market
+- Limited-time availability
+- Contains random 16-Bit weapons
+- Bonus rewards for multiple openings
+
+### VG Weapons Crate
+- Special Video Game themed crate
+- Higher chance for premium 16-Bit weapons
+- Exclusive character skins included
+
+## Pair It With Characters
+
+Complete your retro look with these matching characters:
+- **Game Girl Character**: A gaming enthusiast turned soldier
+- **Pixel Pop Set**: Full outfit with matching accessories
+
+## Community Response
+
+The CrossFire community has been buzzing with excitement since the announcement. Players are sharing their favorite weapon combinations and creating montage videos showcasing the stunning visual effects.
+
+Popular combinations include:
+- Barrett-Prismatic Demon + Game Girl Character
+- AK-47-16Bit + Banana Knife Pop Art
+- Full 16-Bit loadout for ultimate nostalgia
+
+## Limited Time Event
+
+Don't miss out on this nostalgic journey! The 16-Bit collection is available for a limited time only. Log in now to add these iconic weapons to your arsenal and dominate the battlefield in pixel-perfect style.
+
+### Event Duration
+- **Start**: September 30
+- **End**: October 27
+- **Availability**: Black Market and Special Crates
+
+## Tips for Collection
+
+1. **Daily Login**: Log in every day for bonus crates
+2. **Complete Missions**: Special 16-Bit themed missions offer guaranteed rewards
+3. **Trading**: Some 16-Bit items are tradeable with other players
+4. **Bundle Deals**: Look for special bundle offers in the shop
+
+## The Power of Nostalgia
+
+The 16-Bit collection isn't just about aesthetics - it's about celebrating gaming history while enjoying cutting-edge FPS action. Each weapon performs identically to its standard counterpart but offers a unique visual experience that turns heads on the battlefield.
+
+**Relive the classics. Dominate the present. Get your 16-Bit weapons today!**
+
+**- CrossFire Team**`,
+        summary: "The 16-Bit Retro Weapons Collection brings pixel-perfect nostalgia to CrossFire with vibrant retro-styled weapons, special effects, and matching character skins available for a limited time.",
+        image: "/assets/feature-weap.jpg",
+        category: "News",
+        tags: ["Weapons", "16-Bit", "Retro", "Collection", "Limited Edition"],
+        author: "Biomera Team",
+        featured: false,
+        readingTime: 6,
+        views: 7256,
+        createdAt: new Date("2025-10-28")
+      },
+      {
+        id: "anti-cheat-update",
+        title: "CrossFire Anti-Cheat System: Major Security Update",
+        content: `# Anti-Cheat News: Protecting Fair Play
+
+## Commitment to Fair Competition
+
+At CrossFire, we believe in maintaining a fair and competitive environment for all players. We're excited to announce major updates to our anti-cheat system that will enhance security and ensure everyone enjoys a level playing field.
+
+## What's New
+
+Released on **October 16th**, our updated anti-cheat system features:
+
+### Advanced Detection Technology
+
+**Real-Time Monitoring:**
+- Enhanced behavioral analysis to detect unusual patterns
+- Machine learning algorithms that adapt to new cheating methods
+- Instant flagging of suspicious activity
+- Automatic screenshot collection during matches
+
+**Hardware Fingerprinting:**
+- Unique device identification
+- Ban evasion prevention
+- Multi-account cheater tracking
+- Cross-region violation sharing
+
+### Improved Reporting System
+
+We've completely overhauled the player reporting interface:
+
+**New Features:**
+- In-game report button with instant submission
+- Video evidence upload capability
+- Detailed report categories (aimbot, wallhack, speed hack, etc.)
+- Report status tracking
+- Community feedback on reports
+
+### Transparent Ban System
+
+We believe in transparency. Our new system includes:
+- **Public ban announcements** for repeat offenders
+- **Ban duration clarity** (temporary vs. permanent)
+- **Appeal process** for false positives
+- **Evidence review** for contested bans
+
+## Zero Tolerance Policy
+
+CrossFire maintains a strict zero-tolerance policy for cheating:
+
+### First Offense
+- **Account Suspension**: 30 days minimum
+- **Rank Reset**: All competitive progress removed
+- **Inventory Lock**: Premium items frozen during suspension
+
+### Second Offense
+- **Permanent Account Ban**
+- **Hardware ID Ban**: Prevents new account creation
+- **Community Blacklist**: Shared with partner regions
+
+### Severe Cases
+Egregious violations including:
+- Cheat development or distribution
+- Account boosting services
+- Tournament cheating
+- Server exploitation
+
+Result in immediate permanent bans with no appeal option.
+
+## Community Involvement
+
+### Trusted Reporter Program
+
+Active community members can join our Trusted Reporter program:
+- Priority review of submitted reports
+- Access to advanced reporting tools
+- Monthly rewards for accurate reports
+- Direct communication with anti-cheat team
+
+### Fair Play Rewards
+
+Players maintaining clean records receive:
+- **Fair Play Badge**: Display your integrity
+- **Exclusive Skins**: Quarterly rewards for good behavior
+- **Priority Matchmaking**: Faster queues with verified players
+- **VIP Support**: Enhanced customer service access
+
+## Technical Improvements
+
+Our development team has implemented:
+
+### Server-Side Verification
+- Hit registration validation
+- Movement pattern analysis
+- Impossible action detection
+- Bullet trajectory verification
+
+### Client Protection
+- Memory scanning prevention
+- Process injection blocking
+- DLL injection detection
+- Modified file identification
+
+## Player Privacy
+
+While enhancing security, we remain committed to privacy:
+- **Minimal data collection**: Only what's necessary for cheat detection
+- **Encrypted transmission**: All data securely transmitted
+- **Limited retention**: Data deleted after verification
+- **No personal info sharing**: Your privacy is protected
+
+## Community Response
+
+Since implementing these updates, we've seen:
+- **68% reduction** in reported cheating incidents
+- **92% positive feedback** from the community
+- **45% increase** in player retention
+- **Cleaner competitive environment** across all ranks
+
+## How You Can Help
+
+1. **Report Suspicious Behavior**: Use the in-game report feature
+2. **Stay Informed**: Follow official channels for updates
+3. **Protect Your Account**: Never share login credentials
+4. **Avoid Third-Party Software**: Only use official CrossFire clients
+
+## Looking Forward
+
+This is just the beginning. Our anti-cheat team continuously monitors emerging threats and develops countermeasures. Future updates will include:
+- AI-powered cheat prediction
+- Enhanced mobile anti-cheat for CrossFire: Legends
+- Cross-platform security synchronization
+- Community-driven security initiatives
+
+## Conclusion
+
+Fair play is the foundation of competitive gaming. With these comprehensive anti-cheat measures, CrossFire is safer and more competitive than ever. Together, we're building a community where skill and strategy triumph over deception.
+
+**Play Fair. Play CrossFire.**
+
+**- CrossFire Security Team**`,
+        summary: "CrossFire unveils comprehensive anti-cheat system update featuring advanced detection technology, improved reporting, transparent banning, and community involvement programs to ensure fair play.",
+        image: "/assets/feature-comp.jpg",
+        category: "News",
+        tags: ["Anti-Cheat", "Security", "Fair Play", "Updates", "Community"],
+        author: "Biomera Security Team",
+        featured: false,
+        readingTime: 7,
+        views: 6812,
+        createdAt: new Date("2025-10-26")
+      },
+      {
+        id: "halloween-creative-contest",
+        title: "Halloween Creative Contest & Boo-tique Bargains 2025",
+        content: `# Halloween Creative Contest & Spooky Savings!
+
+## Get Ready for a Frighteningly Good Time!
+
+The spooky season is upon us, and CrossFire is celebrating with not one, but TWO spine-tingling events! Get ready for the **Halloween Creative Contest** and exclusive **Boo-tique Bargains** that'll make your Halloween gaming experience unforgettable.
+
+## Halloween Creative Contest
+
+### Show Us Your Spooky Side!
+
+From **October 15th - November 1st**, we're inviting the CrossFire community to unleash their creativity with Halloween-themed content!
+
+### Contest Categories
+
+**Fan Art:**
+- Digital illustrations
+- Traditional drawings
+- 3D character models
+- Weapon skin designs
+- Map concept art
+
+**Content Creation:**
+- Halloween-themed montages
+- Spooky gameplay highlights
+- CrossFire horror stories
+- Costume showcases
+- Creative screenshots
+
+**Written Content:**
+- Short stories set in CrossFire universe
+- Character backstories
+- Map lore and legends
+- Halloween event narratives
+
+### Amazing Prizes!
+
+**Grand Prize (1 Winner):**
+- 100,000 ZP
+- Exclusive Halloween 2025 Weapon Collection (Permanent)
+- Custom namecard featuring your artwork
+- Featured on official CrossFire social media
+- In-game title: "Halloween Legend"
+
+**Runner-Up (3 Winners):**
+- 50,000 ZP
+- Pumpkin Bloodline Weapon Set (30 days)
+- Featured in community showcase
+- In-game title: "Spooky Creator"
+
+**Honorable Mentions (10 Winners):**
+- 25,000 ZP
+- Halloween mystery crate
+- Community recognition
+
+### How to Enter
+
+1. Create your Halloween-themed content
+2. Post on social media with #CrossFireHalloween2025
+3. Submit entry link through official contest portal
+4. Wait for community voting (October 25-29)
+5. Winners announced October 31st!
+
+## Boo-tique Bargains Event
+
+### Spooky Savings You Can't Resist!
+
+From **October 29th - November 2nd**, the Boo-tique is open for business with frighteningly good deals!
+
+### Featured Items on Sale
+
+**Weapons (Up to 40% Off):**
+- Copycat-Halloween Character Bundle
+- Armsel Striker-Ignite
+- Green Dragon Kriss Super V
+- Halloween 2025 Weapon Set
+- M4A1-S T Javelin Beast
+
+**Character Skins (Special Pricing):**
+- Nano Copycat-P.B. (30% off)
+- Duskira Witch (25% off)
+- Kaia Character (20% off)
+- Personal Security-Spectral (35% off)
+
+**Limited Edition:**
+- **Pumpkin Bloodline Set** (October 23 only)
+  - Complete armor set with glowing jack-o-lantern effects
+  - Matching weapons with pumpkin particle effects
+  - Exclusive pumpkin melee weapon
+
+### Daily Flash Sales
+
+Each day features 2-hour flash sales with up to 60% discounts:
+- **October 29**: Halloween crates (11 AM - 1 PM ET)
+- **October 30**: Character bundles (6 PM - 8 PM ET)
+- **October 31**: Weapon skins (12 PM - 2 PM ET)
+- **November 1**: Mystery boxes (9 AM - 11 AM ET)
+- **November 2**: Final clearance (8 PM - 10 PM ET)
+
+## Halloween Weekend Party Rewards
+
+### Login Bonuses
+
+Log in during the Halloween weekend to receive:
+- **Friday**: Pumpkin grenade skin
+- **Saturday**: Spider web namecard
+- **Sunday**: Bat wing spray
+- **Bonus**: Log in all 3 days for exclusive Halloween avatar frame
+
+### Halloween Missions
+
+Complete special Halloween-themed missions for rewards:
+
+**Mission 1: Trick or Treat**
+- Get 100 kills in Halloween-themed maps
+- Reward: 5,000 GP + Halloween crate key
+
+**Mission 2: Haunted Victory**
+- Win 25 matches during event period
+- Reward: Temporary Halloween weapon (7 days)
+
+**Mission 3: Graveyard Guardian**
+- Survive 50 rounds in Mutation mode
+- Reward: Exclusive "Zombie Hunter" title
+
+**Mission 4: Costume Party**
+- Play 10 matches with a Halloween character skin
+- Reward: Permanent Halloween spray collection
+
+## CrossFire Cauldron Mini-Game
+
+### Brew Your Luck!
+
+The CrossFire Cauldron returns with Halloween magic! Drop ingredients into the cauldron and receive random rewards:
+
+**Possible Rewards:**
+- Rare weapon skins
+- Character fragments
+- ZP vouchers
+- Premium crates
+- Exclusive Halloween items
+
+**How to Play:**
+- Collect ingredients through daily missions
+- Visit the Cauldron in the Event Hub
+- Choose your ingredients wisely
+- Watch the magic happen!
+- Claim your rewards!
+
+## Community Events
+
+### Costume Contest (In-Game)**  
+Show off your best Halloween character customization:
+- **Prize**: Most creative outfit wins 50,000 ZP
+- **Voting**: Community vote via social media
+- **Deadline**: October 31st, 11:59 PM ET
+
+### Halloween Tournament
+- **Date**: October 31st, 7 PM ET
+- **Format**: 5v5 Search & Destroy
+- **Prize Pool**: 500,000 ZP distributed among top 8 teams
+- **Special Rule**: Halloween skins only!
+
+## Don't Miss Out!
+
+This Halloween brings together creativity, competition, and incredible savings. Whether you're an artist, content creator, or deal hunter, there's something for everyone in CrossFire's Halloween celebration!
+
+**Join the festivities, show your creativity, and grab these limited-time deals before they vanish into the night!**
+
+**Happy Halloween, Mercenaries!**
+
+**- CrossFire Team**`,
+        summary: "Join CrossFire's Halloween celebration with a creative contest featuring amazing prizes, exclusive Boo-tique bargains with up to 60% off, special weekend missions, and community events from October 15 - November 2.",
+        image: "/assets/news-halloween.jpg",
+        category: "Events",
+        tags: ["Halloween", "Contest", "Sale", "Creative", "Community", "Limited Time"],
+        author: "[GM]Ganbatte",
+        featured: false,
+        readingTime: 8,
+        views: 9341,
+        createdAt: new Date("2025-10-25")
+      }
+    );
+
     initialPosts.forEach((post) => this.posts.set(post.id, post));
 
     // Initialize news items
