@@ -2,7 +2,7 @@
 
 ## Overview
 
-Bemora Gaming Blog is a modern, full-stack gaming blog platform built with React, TypeScript, Express, and PostgreSQL. It features a content-first design philosophy with bilingual support (English/Arabic), admin dashboard for content management, and a rich reading experience. The platform emphasizes typography, elegant design, and responsive layouts inspired by Medium, Ghost, and Notion.
+Bemora Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and in-memory storage. Originally a blog platform, it has been transformed into a gaming-focused site featuring a news section with CrossFire-style grid layouts, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes bilingual support (English/Arabic), responsive design, and engaging visual experiences.
 
 ## User Preferences
 
@@ -40,9 +40,10 @@ Preferred communication style: Simple, everyday language.
 
 **Storage Layer**
 - **In-memory storage implementation** (`MemStorage` class) as the current data persistence layer
-- Uses Map data structures for users, posts, comments, and events
+- Uses Map data structures for users, posts, comments, events, news items, and mercenaries
 - **Database migration path**: Drizzle ORM configured for PostgreSQL migration (schema defined but not yet connected)
 - Schema uses UUID primary keys, timestamp tracking, and proper foreign key relationships
+- CrossFire-themed mock data initialized on startup (news items and mercenary characters)
 
 **Authentication & Authorization**
 - **JWT-based authentication** with configurable secret (environment variable)
@@ -52,17 +53,20 @@ Preferred communication style: Simple, everyday language.
 
 **API Design**
 - RESTful endpoints under `/api` namespace
-- Separate route handlers for auth, posts, comments, and events
+- Separate route handlers for auth, posts, comments, events, news, and mercenaries
 - Request/response logging middleware for API calls
 - Error handling with appropriate HTTP status codes
+- Gaming-specific endpoints: `/api/news` and `/api/mercenaries`
 
 ### Data Schema
 
-**Core Entities** (defined in Drizzle schema):
+**Core Entities** (defined in Drizzle schema and storage interfaces):
 - **Users**: id, username, password (hashed)
 - **Posts**: id, title, content, summary, image, category, tags (array), author, views, readingTime, featured flag, createdAt
 - **Comments**: id, postId (foreign key), name, content, createdAt
 - **Events**: id, title, date, type (upcoming/trending)
+- **NewsItem** (storage only): id, title, dateRange, image, featured flag
+- **Mercenary** (storage only): id, name, image, role
 
 **Validation**
 - Zod schemas generated from Drizzle definitions using `drizzle-zod`
@@ -72,6 +76,8 @@ Preferred communication style: Simple, everyday language.
 
 **Public Pages**
 - **Home**: Hero section, category filtering, search, article grid, sidebar with recent posts/popular tags/most viewed
+- **News**: CrossFire-style grid layout with featured news card (2x2 grid on desktop), static display cards with hover effects
+- **Mercenaries**: Horizontal gallery of character cards with hover-to-enlarge effect using CSS transforms, no layout shifts
 - **Article**: Full post view with markdown rendering, related articles, comments section
 - **About**: Static informational page
 - **Contact**: Contact form (frontend only, no submission endpoint)
@@ -98,6 +104,8 @@ Preferred communication style: Simple, everyday language.
 - Controlled form inputs with validation
 - Accessible dialogs and modals using Radix primitives
 - Toast notifications for user feedback
+- Interactive hover effects with CSS transforms (scale) to avoid layout shifts
+- Grid-based news layouts with responsive columns and featured items
 
 ## External Dependencies
 
@@ -137,5 +145,20 @@ Preferred communication style: Simple, everyday language.
 
 ### Asset Management
 - Static assets stored in `attached_assets/` directory
-- Generated images for hero backgrounds and article covers
+- AI-generated CrossFire-themed images:
+  - Tactical assault rifle weapon (tactical_assault_rifle_weapon_17c651c5.png)
+  - Intense tactical combat scene (intense_tactical_combat_scene_c8202806.png)
+  - Tactical weapons arsenal display (tactical_weapons_arsenal_display_341b61a5.png)
+  - Female tactical operator character (female_tactical_operator_character_7f8de27c.png)
+  - Male tactical mercenary character (male_tactical_mercenary_character_4eb7f00f.png)
 - Vite alias configuration for easy asset imports (@assets)
+
+## Recent Changes (November 2025)
+
+### CrossFire Gaming Transformation
+- **Rebranding**: Changed site name from "Bimora" to "Bemora" across all pages and components
+- **News Page**: Created CrossFire-style news grid with featured hero card, hover effects, and static display (no navigation)
+- **Mercenaries Page**: Implemented character showcase gallery with smooth hover-to-enlarge effect using CSS scale transforms
+- **Navigation**: Added News and Mercenaries links to main navigation menu
+- **Mock Data**: Populated storage with CrossFire-themed news items (6 items) and mercenary characters (10 items)
+- **Visual Design**: Enhanced hover interactions while maintaining layout stability (no layout shifts on hover)
