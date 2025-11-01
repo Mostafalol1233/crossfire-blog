@@ -6,8 +6,17 @@ import {
   type Comment,
   type InsertComment,
   type Event,
-  type InsertEvent
+  type InsertEvent,
+  type News,
+  type InsertNews,
+  users,
+  posts,
+  comments,
+  events,
+  news
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface NewsItem {
@@ -1146,6 +1155,7 @@ Don't miss out! Join the celebration and embrace the competition!
     const comment: Comment = {
       ...insertComment,
       id,
+      parentCommentId: insertComment.parentCommentId ?? null,
       createdAt: new Date()
     };
     this.comments.set(id, comment);
@@ -1212,4 +1222,389 @@ Don't miss out! Join the celebration and embrace the competition!
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  private mercenaries: Map<string, Mercenary>;
+
+  constructor() {
+    this.mercenaries = new Map();
+    this.initializeMercenaries();
+  }
+
+  private initializeMercenaries() {
+    const mercenaries: Mercenary[] = [
+      {
+        id: "1",
+        name: "Wolf",
+        image: "/assets/merc-wolf.jpg",
+        role: "Assault",
+      },
+      {
+        id: "2",
+        name: "Vipers",
+        image: "/assets/merc-vipers.jpg",
+        role: "Sniper",
+      },
+      {
+        id: "3",
+        name: "Sisterhood",
+        image: "/assets/merc-sisterhood.jpg",
+        role: "Medic",
+      },
+      {
+        id: "4",
+        name: "Black Mamba",
+        image: "/assets/merc-blackmamba.jpg",
+        role: "Scout",
+      },
+      {
+        id: "5",
+        name: "Arch Honorary",
+        image: "/assets/merc-archhonorary.jpg",
+        role: "Tank",
+      },
+      {
+        id: "6",
+        name: "Desperado",
+        image: "/assets/merc-desperado.jpg",
+        role: "Engineer",
+      },
+      {
+        id: "7",
+        name: "Ronin",
+        image: "/assets/merc-ronin.jpg",
+        role: "Samurai",
+      },
+      {
+        id: "8",
+        name: "Dean",
+        image: "/assets/merc-dean.jpg",
+        role: "Specialist",
+      },
+      {
+        id: "9",
+        name: "Thoth",
+        image: "/assets/merc-thoth.jpg",
+        role: "Guardian",
+      },
+      {
+        id: "10",
+        name: "SFG",
+        image: "/assets/merc-sfg.jpg",
+        role: "Special Forces Group",
+      },
+      {
+        id: "11",
+        name: "SWAT Enforcer",
+        image: "/assets/merc-desperado.jpg",
+        role: "Tactical Officer",
+      },
+      {
+        id: "12",
+        name: "Delta Operative",
+        image: "/assets/merc-sisterhood.jpg",
+        role: "Special Operations",
+      },
+      {
+        id: "13",
+        name: "Night Stalker",
+        image: "/assets/merc-blackmamba.jpg",
+        role: "Stealth Operations",
+      },
+      {
+        id: "14",
+        name: "Combat Medic",
+        image: "/assets/merc-wolf.jpg",
+        role: "Medical Support",
+      },
+      {
+        id: "15",
+        name: "Marksman",
+        image: "/assets/merc-vipers.jpg",
+        role: "Sniper",
+      },
+      {
+        id: "16",
+        name: "Urban Assault",
+        image: "/assets/merc-archhonorary.jpg",
+        role: "Close Quarters",
+      },
+      {
+        id: "17",
+        name: "Ghost Recon",
+        image: "/assets/merc-ronin.jpg",
+        role: "Reconnaissance",
+      },
+      {
+        id: "18",
+        name: "Demolitions Expert",
+        image: "/assets/merc-dean.jpg",
+        role: "Explosives",
+      },
+      {
+        id: "19",
+        name: "Heavy Gunner",
+        image: "/assets/merc-thoth.jpg",
+        role: "Support",
+      },
+      {
+        id: "20",
+        name: "Cyber Ops",
+        image: "/assets/merc-sfg.jpg",
+        role: "Tech Specialist",
+      },
+      {
+        id: "21",
+        name: "Shadow Hunter",
+        image: "/assets/merc-desperado.jpg",
+        role: "Infiltrator",
+      },
+      {
+        id: "22",
+        name: "Breach Specialist",
+        image: "/assets/merc-sisterhood.jpg",
+        role: "Entry Team",
+      },
+    ];
+
+    mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    try {
+      const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error getting user:", error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error getting user by username:", error);
+      return undefined;
+    }
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    try {
+      const result = await db.insert(users).values(insertUser).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
+  }
+
+  async getAllPosts(): Promise<Post[]> {
+    try {
+      const result = await db.select().from(posts).orderBy(desc(posts.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting all posts:", error);
+      return [];
+    }
+  }
+
+  async getPostById(id: string): Promise<Post | undefined> {
+    try {
+      const result = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error getting post by id:", error);
+      return undefined;
+    }
+  }
+
+  async createPost(insertPost: InsertPost): Promise<Post> {
+    try {
+      const result = await db.insert(posts).values(insertPost).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating post:", error);
+      throw error;
+    }
+  }
+
+  async updatePost(id: string, updates: Partial<InsertPost>): Promise<Post | undefined> {
+    try {
+      const result = await db.update(posts).set(updates).where(eq(posts.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error updating post:", error);
+      return undefined;
+    }
+  }
+
+  async deletePost(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(posts).where(eq(posts.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      return false;
+    }
+  }
+
+  async incrementPostViews(id: string): Promise<void> {
+    try {
+      const post = await this.getPostById(id);
+      if (post) {
+        await db.update(posts).set({ views: post.views + 1 }).where(eq(posts.id, id));
+      }
+    } catch (error) {
+      console.error("Error incrementing post views:", error);
+    }
+  }
+
+  async getCommentsByPostId(postId: string): Promise<Comment[]> {
+    try {
+      const result = await db.select().from(comments).where(eq(comments.postId, postId)).orderBy(desc(comments.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting comments by post id:", error);
+      return [];
+    }
+  }
+
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    try {
+      const result = await db.insert(comments).values(insertComment).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      throw error;
+    }
+  }
+
+  async getAllEvents(): Promise<Event[]> {
+    try {
+      const result = await db.select().from(events);
+      return result;
+    } catch (error) {
+      console.error("Error getting all events:", error);
+      return [];
+    }
+  }
+
+  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+    try {
+      const result = await db.insert(events).values(insertEvent).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating event:", error);
+      throw error;
+    }
+  }
+
+  async deleteEvent(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(events).where(eq(events.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      return false;
+    }
+  }
+
+  async getAllNews(): Promise<NewsItem[]> {
+    try {
+      const result = await db.select().from(news);
+      return result.map((item) => ({
+        id: item.id,
+        title: item.title,
+        dateRange: item.dateRange,
+        image: item.image,
+        category: item.category,
+        content: item.content,
+        author: item.author,
+        featured: item.featured,
+      }));
+    } catch (error) {
+      console.error("Error getting all news:", error);
+      return [];
+    }
+  }
+
+  async createNews(newsData: Partial<NewsItem>): Promise<NewsItem> {
+    try {
+      const insertData: InsertNews = {
+        title: newsData.title || "",
+        dateRange: newsData.dateRange || "",
+        image: newsData.image || "",
+        category: newsData.category || "News",
+        content: newsData.content || "",
+        author: newsData.author || "",
+        featured: newsData.featured ?? false,
+      };
+      
+      const result = await db.insert(news).values(insertData).returning();
+      const item = result[0];
+      
+      return {
+        id: item.id,
+        title: item.title,
+        dateRange: item.dateRange,
+        image: item.image,
+        category: item.category,
+        content: item.content,
+        author: item.author,
+        featured: item.featured,
+      };
+    } catch (error) {
+      console.error("Error creating news:", error);
+      throw error;
+    }
+  }
+
+  async updateNews(id: string, updates: Partial<NewsItem>): Promise<NewsItem | undefined> {
+    try {
+      const updateData: Partial<InsertNews> = {};
+      if (updates.title !== undefined) updateData.title = updates.title;
+      if (updates.dateRange !== undefined) updateData.dateRange = updates.dateRange;
+      if (updates.image !== undefined) updateData.image = updates.image;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.content !== undefined) updateData.content = updates.content;
+      if (updates.author !== undefined) updateData.author = updates.author;
+      if (updates.featured !== undefined) updateData.featured = updates.featured;
+
+      const result = await db.update(news).set(updateData).where(eq(news.id, id)).returning();
+      
+      if (result.length === 0) return undefined;
+      
+      const item = result[0];
+      return {
+        id: item.id,
+        title: item.title,
+        dateRange: item.dateRange,
+        image: item.image,
+        category: item.category,
+        content: item.content,
+        author: item.author,
+        featured: item.featured,
+      };
+    } catch (error) {
+      console.error("Error updating news:", error);
+      return undefined;
+    }
+  }
+
+  async deleteNews(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(news).where(eq(news.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting news:", error);
+      return false;
+    }
+  }
+
+  async getAllMercenaries(): Promise<Mercenary[]> {
+    return Array.from(this.mercenaries.values());
+  }
+}
+
+export const storage = new DatabaseStorage();

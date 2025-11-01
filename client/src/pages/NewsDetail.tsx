@@ -75,7 +75,7 @@ export default function NewsDetail() {
           </div>
         </div>
 
-        <div className="relative w-full h-[400px] rounded-xl overflow-hidden mb-8">
+        <div className="relative w-full h-[500px] md:h-[600px] lg:h-[700px] rounded-xl overflow-hidden mb-8">
           <img
             src={newsItem.image}
             alt={newsItem.title}

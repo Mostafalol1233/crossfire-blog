@@ -4,26 +4,56 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Link } from "wouter";
+import { useMemo } from "react";
 
 interface NewsItem {
   id: string;
   title: string;
-  dateRange: string;
+  dateRange?: string;
+  date?: string;
   image: string;
   category: string;
   content: string;
+  summary?: string;
   author: string;
   featured?: boolean;
+  type?: 'news' | 'post';
 }
 
 export default function News() {
   const { t } = useLanguage();
 
-  const { data: newsItems = [], isLoading } = useQuery<NewsItem[]>({
+  const { data: newsItems = [], isLoading: newsLoading } = useQuery<NewsItem[]>({
     queryKey: ["/api/news"],
   });
 
-  if (isLoading) {
+  const { data: posts = [], isLoading: postsLoading } = useQuery<any[]>({
+    queryKey: ["/api/posts"],
+  });
+
+  const allNews = useMemo(() => {
+    const newsWithType = newsItems.map(item => ({ ...item, type: 'news' as const }));
+    const postsWithType = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      dateRange: post.date || 'Recent',
+      image: post.image,
+      category: post.category,
+      content: post.content,
+      summary: post.summary,
+      author: post.author,
+      featured: post.featured,
+      type: 'post' as const
+    }));
+    
+    return [...newsWithType, ...postsWithType].sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return 0;
+    });
+  }, [newsItems, posts]);
+
+  if (newsLoading || postsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg text-muted-foreground">Loading...</div>
@@ -39,14 +69,14 @@ export default function News() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {newsItems.map((item, index) => (
+          {allNews.map((item, index) => (
             <div
               key={item.id}
               className={`${
                 index === 0 ? "md:col-span-2 md:row-span-2" : ""
               }`}
             >
-              <Link href={`/news/${item.id}`}>
+              <Link href={item.type === 'post' ? `/article/${item.id}` : `/news/${item.id}`}>
                 <Card
                   className={`relative overflow-hidden group hover-elevate active-elevate-2 transition-all duration-300 cursor-pointer ${
                     index === 0 ? "h-full min-h-[400px]" : "h-[300px]"

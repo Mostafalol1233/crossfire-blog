@@ -138,7 +138,7 @@ export default function Article() {
               <img
                 src={article.image}
                 alt={article.title}
-                className="w-full h-64 md:h-96 object-cover rounded-md mb-8"
+                className="w-full h-[400px] md:h-[550px] lg:h-[650px] object-cover rounded-md mb-8"
                 data-testid="img-article-cover"
               />
             )}
