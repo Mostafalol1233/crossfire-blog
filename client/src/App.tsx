@@ -15,6 +15,7 @@ import News from "@/pages/News";
 import NewsDetail from "@/pages/NewsDetail";
 import Mercenaries from "@/pages/Mercenaries";
 import GraveGames from "@/pages/GraveGames";
+import Category from "@/pages/Category";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import NotFound from "@/pages/not-found";
@@ -23,6 +24,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/category/:category" component={Category} />
       <Route path="/news" component={News} />
       <Route path="/news/:id" component={NewsDetail} />
       <Route path="/mercenaries" component={Mercenaries} />

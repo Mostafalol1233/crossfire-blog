@@ -40,6 +40,18 @@ export const events = pgTable("events", {
   image: text("image").notNull().default(""),
 });
 
+export const news = pgTable("news", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  dateRange: text("date_range").notNull(),
+  image: text("image").notNull(),
+  category: text("category").notNull(),
+  content: text("content").notNull(),
+  author: text("author").notNull(),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
@@ -59,6 +71,11 @@ export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
 });
 
+export const insertNewsSchema = createInsertSchema(news).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -70,3 +87,6 @@ export type Comment = typeof comments.$inferSelect;
 
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;
+
+export type InsertNews = z.infer<typeof insertNewsSchema>;
+export type News = typeof news.$inferSelect;

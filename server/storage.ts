@@ -53,6 +53,9 @@ export interface IStorage {
 
   // News methods
   getAllNews(): Promise<NewsItem[]>;
+  createNews(news: Partial<NewsItem>): Promise<NewsItem>;
+  updateNews(id: string, news: Partial<NewsItem>): Promise<NewsItem | undefined>;
+  deleteNews(id: string): Promise<boolean>;
 
   // Mercenaries methods
   getAllMercenaries(): Promise<Mercenary[]>;
@@ -466,6 +469,78 @@ Don't miss out! Join the celebration and embrace the competition!
         image: "/assets/merc-sfg.jpg",
         role: "Special Forces Group",
       },
+      {
+        id: "11",
+        name: "SWAT Enforcer",
+        image: "/assets/merc-desperado.jpg",
+        role: "Tactical Officer",
+      },
+      {
+        id: "12",
+        name: "Delta Operative",
+        image: "/assets/merc-sisterhood.jpg",
+        role: "Special Operations",
+      },
+      {
+        id: "13",
+        name: "Night Stalker",
+        image: "/assets/merc-blackmamba.jpg",
+        role: "Stealth Operations",
+      },
+      {
+        id: "14",
+        name: "Combat Medic",
+        image: "/assets/merc-wolf.jpg",
+        role: "Medical Support",
+      },
+      {
+        id: "15",
+        name: "Marksman",
+        image: "/assets/merc-vipers.jpg",
+        role: "Sniper",
+      },
+      {
+        id: "16",
+        name: "Urban Assault",
+        image: "/assets/merc-archhonorary.jpg",
+        role: "Close Quarters",
+      },
+      {
+        id: "17",
+        name: "Ghost Recon",
+        image: "/assets/merc-ronin.jpg",
+        role: "Reconnaissance",
+      },
+      {
+        id: "18",
+        name: "Demolitions Expert",
+        image: "/assets/merc-dean.jpg",
+        role: "Explosives",
+      },
+      {
+        id: "19",
+        name: "Heavy Gunner",
+        image: "/assets/merc-thoth.jpg",
+        role: "Support",
+      },
+      {
+        id: "20",
+        name: "Cyber Ops",
+        image: "/assets/merc-sfg.jpg",
+        role: "Tech Specialist",
+      },
+      {
+        id: "21",
+        name: "Shadow Hunter",
+        image: "/assets/merc-desperado.jpg",
+        role: "Infiltrator",
+      },
+      {
+        id: "22",
+        name: "Breach Specialist",
+        image: "/assets/merc-sisterhood.jpg",
+        role: "Entry Team",
+      },
     ];
 
     mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
@@ -574,6 +649,35 @@ Don't miss out! Join the celebration and embrace the competition!
   // News methods
   async getAllNews(): Promise<NewsItem[]> {
     return Array.from(this.news.values());
+  }
+
+  async createNews(newsData: Partial<NewsItem>): Promise<NewsItem> {
+    const id = randomUUID();
+    const news: NewsItem = {
+      id,
+      title: newsData.title || "",
+      dateRange: newsData.dateRange || "",
+      image: newsData.image || "",
+      category: newsData.category || "News",
+      content: newsData.content || "",
+      author: newsData.author || "",
+      featured: newsData.featured ?? false,
+    };
+    this.news.set(id, news);
+    return news;
+  }
+
+  async updateNews(id: string, updates: Partial<NewsItem>): Promise<NewsItem | undefined> {
+    const news = this.news.get(id);
+    if (!news) return undefined;
+    
+    const updatedNews = { ...news, ...updates };
+    this.news.set(id, updatedNews);
+    return updatedNews;
+  }
+
+  async deleteNews(id: string): Promise<boolean> {
+    return this.news.delete(id);
   }
 
   // Mercenaries methods

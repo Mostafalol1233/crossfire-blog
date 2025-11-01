@@ -35,6 +35,8 @@ export default function Admin() {
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [isCreatingNews, setIsCreatingNews] = useState(false);
+  const [editingNews, setEditingNews] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -62,6 +64,16 @@ export default function Admin() {
     image: "",
   });
 
+  const [newsForm, setNewsForm] = useState({
+    title: "",
+    dateRange: "",
+    image: "",
+    category: "News",
+    content: "",
+    author: "Bimora Team",
+    featured: false,
+  });
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -81,6 +93,10 @@ export default function Admin() {
 
   const { data: events } = useQuery<any[]>({
     queryKey: ["/api/events"],
+  });
+
+  const { data: newsItems } = useQuery<any[]>({
+    queryKey: ["/api/news"],
   });
 
   const createPostMutation = useMutation({
@@ -155,6 +171,51 @@ export default function Admin() {
     },
   });
 
+  const createNewsMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/news", "POST", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      setIsCreatingNews(false);
+      setNewsForm({
+        title: "",
+        dateRange: "",
+        image: "",
+        category: "News",
+        content: "",
+        author: "Bimora Team",
+        featured: false,
+      });
+      toast({ title: "News item created successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to create news item", variant: "destructive" });
+    },
+  });
+
+  const updateNewsMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiRequest(`/api/news/${id}`, "PATCH", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      setEditingNews(null);
+      toast({ title: "News item updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update news item", variant: "destructive" });
+    },
+  });
+
+  const deleteNewsMutation = useMutation({
+    mutationFn: (id: string) => apiRequest(`/api/news/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      toast({ title: "News item deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete news item", variant: "destructive" });
+    },
+  });
+
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -213,6 +274,36 @@ export default function Admin() {
         tags: postForm.tags.split(",").map((t) => t.trim()),
       },
     });
+  };
+
+  const handleCreateNews = () => {
+    createNewsMutation.mutate(newsForm);
+  };
+
+  const handleUpdateNews = () => {
+    if (!editingNews) return;
+    updateNewsMutation.mutate({
+      id: editingNews.id,
+      data: newsForm,
+    });
+  };
+
+  const handlePostDialogChange = (open: boolean) => {
+    setIsCreating(open);
+    if (!open) {
+      setEditingPost(null);
+      setPostForm({
+        title: "",
+        content: "",
+        summary: "",
+        image: "",
+        category: "Tutorials",
+        tags: "",
+        author: "Bimora Team",
+        featured: false,
+        readingTime: 5,
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -275,7 +366,7 @@ export default function Admin() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">Posts</h2>
-              <Dialog open={isCreating} onOpenChange={setIsCreating}>
+              <Dialog open={isCreating} onOpenChange={handlePostDialogChange}>
                 <DialogTrigger asChild>
                   <Button data-testid="button-create-post">
                     <Plus className="h-4 w-4 mr-2" />
@@ -609,6 +700,190 @@ export default function Admin() {
                 </Card>
               ))}
             </div>
+          </div>
+        </div>
+
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold">News Management</h2>
+            <Dialog open={isCreatingNews} onOpenChange={setIsCreatingNews}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-create-news">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New News
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingNews ? "Edit News Item" : "Create New News Item"}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Title"
+                    value={newsForm.title}
+                    onChange={(e) =>
+                      setNewsForm({ ...newsForm, title: e.target.value })
+                    }
+                    data-testid="input-news-title"
+                  />
+                  <Input
+                    placeholder="Date Range (e.g., Oct 15 - Nov 4)"
+                    value={newsForm.dateRange}
+                    onChange={(e) =>
+                      setNewsForm({ ...newsForm, dateRange: e.target.value })
+                    }
+                    data-testid="input-news-daterange"
+                  />
+                  <Input
+                    placeholder="Image URL"
+                    value={newsForm.image}
+                    onChange={(e) =>
+                      setNewsForm({ ...newsForm, image: e.target.value })
+                    }
+                    data-testid="input-news-image"
+                  />
+                  <select
+                    value={newsForm.category}
+                    onChange={(e) =>
+                      setNewsForm({ ...newsForm, category: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-md border border-input bg-background"
+                    data-testid="select-news-category"
+                  >
+                    <option value="News">News</option>
+                    <option value="Events">Events</option>
+                    <option value="Reviews">Reviews</option>
+                    <option value="Tutorials">Tutorials</option>
+                  </select>
+                  <div className="space-y-2">
+                    <div data-testid="input-news-content">
+                      <ReactQuill
+                        theme="snow"
+                        value={newsForm.content}
+                        onChange={(value) =>
+                          setNewsForm({ ...newsForm, content: value })
+                        }
+                        modules={{
+                          toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'blockquote', 'code-block'],
+                            ['clean']
+                          ],
+                        }}
+                        placeholder="Write your content here... Format text easily with the toolbar above"
+                        style={{ minHeight: '300px' }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Use the toolbar to format your text. Copy and paste formatted content to preserve its styling.
+                    </p>
+                  </div>
+                  <Input
+                    placeholder="Author"
+                    value={newsForm.author}
+                    onChange={(e) =>
+                      setNewsForm({ ...newsForm, author: e.target.value })
+                    }
+                    data-testid="input-news-author"
+                  />
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={newsForm.featured}
+                      onChange={(e) =>
+                        setNewsForm({
+                          ...newsForm,
+                          featured: e.target.checked,
+                        })
+                      }
+                      data-testid="checkbox-news-featured"
+                    />
+                    <span className="text-sm">Featured</span>
+                  </label>
+                  <Button
+                    onClick={
+                      editingNews ? handleUpdateNews : handleCreateNews
+                    }
+                    className="w-full"
+                    data-testid="button-submit-news"
+                  >
+                    {editingNews ? "Update News" : "Create News"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {newsItems?.map((news: any) => (
+              <Card key={news.id} data-testid={`news-card-${news.id}`}>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm line-clamp-1">{news.title}</h3>
+                          {news.featured && (
+                            <Badge variant="default" className="text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {news.dateRange}
+                        </p>
+                        <Badge variant="outline" className="text-xs">
+                          {news.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    {news.image && (
+                      <img
+                        src={news.image}
+                        alt={news.title}
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setEditingNews(news);
+                          setNewsForm({
+                            title: news.title,
+                            dateRange: news.dateRange,
+                            image: news.image,
+                            category: news.category,
+                            content: news.content,
+                            author: news.author,
+                            featured: news.featured,
+                          });
+                          setIsCreatingNews(true);
+                        }}
+                        data-testid={`button-edit-news-${news.id}`}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteNewsMutation.mutate(news.id)}
+                        data-testid={`button-delete-news-${news.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>

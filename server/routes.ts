@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertEventSchema } from "@shared/schema";
+import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema } from "@shared/schema";
 import { generateToken, verifyAdminPassword, requireAuth } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 
@@ -252,6 +252,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const news = await storage.getAllNews();
       res.json(news);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/news", requireAuth, async (req, res) => {
+    try {
+      const data = insertNewsSchema.parse(req.body);
+      const news = await storage.createNews(data);
+      res.status(201).json(news);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/news/:id", requireAuth, async (req, res) => {
+    try {
+      const updates = req.body;
+      const news = await storage.updateNews(req.params.id, updates);
+      
+      if (!news) {
+        return res.status(404).json({ error: "News item not found" });
+      }
+
+      res.json(news);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/news/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteNews(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "News item not found" });
+      }
+
+      res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
