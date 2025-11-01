@@ -7,12 +7,12 @@ export default function About() {
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <h1 className="text-4xl md:text-5xl font-bold mb-8">
-          {t("about")} Biomera Gaming
+          {t("about")} Bimora Gaming
         </h1>
 
         <div className="prose prose-lg dark:prose-invert max-w-none space-y-6">
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Welcome to Biomera Gaming, your premier source for CrossFire news,
+            Welcome to Bimora Gaming, your premier source for CrossFire news,
             character guides, weapon reviews, and gaming updates.
           </p>
 

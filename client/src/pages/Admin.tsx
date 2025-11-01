@@ -41,7 +41,7 @@ export default function Admin() {
     image: "",
     category: "Tutorials",
     tags: "",
-    author: "Biomera Team",
+    author: "Bimora Team",
     featured: false,
     readingTime: 5,
   });
@@ -86,7 +86,7 @@ export default function Admin() {
         image: "",
         category: "Tutorials",
         tags: "",
-        author: "Biomera Team",
+        author: "Bimora Team",
         featured: false,
         readingTime: 5,
       });
@@ -287,15 +287,20 @@ export default function Admin() {
                       }
                       data-testid="input-post-title"
                     />
-                    <Textarea
-                      placeholder="Content (Markdown supported)"
-                      value={postForm.content}
-                      onChange={(e) =>
-                        setPostForm({ ...postForm, content: e.target.value })
-                      }
-                      rows={10}
-                      data-testid="input-post-content"
-                    />
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Content (Markdown supported - **bold**, *italic*, # Heading, etc.)"
+                        value={postForm.content}
+                        onChange={(e) =>
+                          setPostForm({ ...postForm, content: e.target.value })
+                        }
+                        rows={10}
+                        data-testid="input-post-content"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Markdown formatting: **bold**, *italic*, # Heading, - List, [link](url). Emojis and special characters are supported in content.
+                      </p>
+                    </div>
                     <Textarea
                       placeholder="Summary (optional)"
                       value={postForm.summary}

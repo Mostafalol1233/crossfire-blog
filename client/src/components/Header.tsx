@@ -25,7 +25,7 @@ export function Header() {
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-destructive bg-clip-text text-transparent">
-              Biomera
+              Bimora
             </span>
           </Link>
 

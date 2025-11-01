@@ -24,12 +24,12 @@ export default function Home() {
 
   const heroPost = allPosts.find((p) => p.featured) || {
     id: "1",
-    title: "Welcome to Biomera Blog Pro",
+    title: "Welcome to Bimora Gaming Blog",
     summary:
-      "Your source for modern web development knowledge and tech insights. Create your first post in the admin dashboard!",
+      "Your source for CrossFire gaming news, character guides, and community updates. Create your first post in the admin dashboard!",
     category: "Tutorials",
     image: tutorialImage,
-    author: "Biomera Team",
+    author: "Bimora Team",
     date: "Today",
     readingTime: 1,
     views: 0,

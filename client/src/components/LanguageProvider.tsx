@@ -24,7 +24,7 @@ const translations: Record<Language, Record<string, string>> = {
     recentPosts: "Recent Posts",
     popularTags: "Popular Tags",
     mostViewed: "Most Viewed",
-    bimoraPicks: "Biomera's Picks",
+    bimoraPicks: "Bimora's Picks",
     readingTime: "min read",
     views: "views",
     latest: "Latest",
@@ -37,7 +37,7 @@ const translations: Record<Language, Record<string, string>> = {
     admin: "Admin Dashboard",
     logout: "Logout",
     login: "Login",
-    copyright: "© 2025 Biomera Gaming — All Rights Reserved",
+    copyright: "© 2025 Bimora Gaming — All Rights Reserved",
   },
   ar: {
     home: "الرئيسية",
@@ -67,7 +67,7 @@ const translations: Record<Language, Record<string, string>> = {
     admin: "لوحة الإدارة",
     logout: "تسجيل الخروج",
     login: "تسجيل الدخول",
-    copyright: "© 2025 Biomera Gaming — جميع الحقوق محفوظة",
+    copyright: "© 2025 Bimora Gaming — جميع الحقوق محفوظة",
   },
 };
 

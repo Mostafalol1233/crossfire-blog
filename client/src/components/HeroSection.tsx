@@ -3,7 +3,7 @@ import { Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "./LanguageProvider";
-import heroImage from "@assets/generated_images/Blog_hero_background_image_8f5e0baa.png";
+import heroImage from "@assets/crossfire-hero-bg.jpg";
 
 interface HeroPost {
   id: string;
@@ -30,7 +30,7 @@ export function HeroSection({ post }: HeroSectionProps) {
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
       
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 h-full min-h-[70vh] md:min-h-[80vh] flex items-end pb-12 md:pb-20">
         <div className="max-w-3xl">
