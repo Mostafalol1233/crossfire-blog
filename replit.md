@@ -65,7 +65,7 @@ Preferred communication style: Simple, everyday language.
 - **Posts**: id, title, content, summary, image, category, tags (array), author, views, readingTime, featured flag, createdAt
 - **Comments**: id, postId (foreign key), name, content, createdAt
 - **Events**: id, title, date, type (upcoming/trending)
-- **NewsItem** (storage only): id, title, dateRange, image, featured flag
+- **NewsItem** (storage only): id, title, dateRange, image, category, content, author, featured flag
 - **Mercenary** (storage only): id, name, image, role
 
 **Validation**
@@ -76,8 +76,10 @@ Preferred communication style: Simple, everyday language.
 
 **Public Pages**
 - **Home**: Hero section, category filtering, search, article grid, sidebar with recent posts/popular tags/most viewed
-- **News**: CrossFire-style grid layout with featured news card (2x2 grid on desktop), static display cards with hover effects
-- **Mercenaries**: Horizontal gallery of character cards with hover-to-enlarge effect using CSS transforms, no layout shifts
+- **News**: CrossFire-style grid layout with featured news card (2x2 grid on desktop), clickable news cards with category badges that navigate to detail pages
+- **NewsDetail**: Individual news article page with full content, category badge, author info, translation note placeholder, and semantic list rendering
+- **Mercenaries**: Horizontal gallery of character cards with hover-to-enlarge effect using CSS transforms, 300px width per card, no layout shifts
+- **GraveGames**: Event information page with hero image and external link to progress tracker
 - **Article**: Full post view with markdown rendering, related articles, comments section
 - **About**: Static informational page
 - **Contact**: Contact form (frontend only, no submission endpoint)
@@ -173,3 +175,16 @@ Preferred communication style: Simple, everyday language.
 - **Events Image Support**: Added optional image URL field to events schema, storage interface, and admin form for enhanced event presentation
 - **Frontend Route Protection**: Implemented client-side authentication guard that redirects unauthenticated users from /admin to /admin/login, working in tandem with existing JWT backend protection
 - **Enhanced Security**: Admin dashboard now has both frontend (localStorage token check) and backend (JWT verification middleware) protection layers
+
+### News System Enhancements (November 2025)
+- **Enhanced News Schema**: Added category, content, and author fields to NewsItem interface for full article support with categorization
+- **News Detail Pages**: Created dedicated NewsDetail page for individual news articles with full content display, semantic HTML list rendering, and translation note placeholder
+- **Interactive News Cards**: Updated News page with clickable cards featuring category badges (News, Events, Reviews, Tutorials) that link to detail pages
+- **New Event Articles**: Added three official CrossFire event articles with full content:
+  - Mystic Moonlight Market (October 15 - November 4) by [GM]Ganbatte
+  - CF Event Pass Season 5 Rewind (September 30 - December 3) by [GM]Ganbatte
+  - CFS Super Fans (October 22 - November 4) by [GM]Xenon
+- **Grave Games Page**: Created dedicated event page with hero image, event details, and external link to official progress tracker (z8games.com)
+- **Mercenary Gallery Update**: Increased mercenary card width from 200px to 300px for better visibility while maintaining same height (600px) and hover effects
+- **Routing Updates**: Added new routes /news/:id for news detail pages and /grave-games for the event info page
+- **Content Rendering**: Implemented smart markdown-style content parser that properly wraps bullet lists in semantic <ul> tags and renders headings, paragraphs with proper hierarchy
