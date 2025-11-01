@@ -1,8 +1,8 @@
-# Bimora Blog Pro
+# Bemora Gaming Blog
 
 ## Overview
 
-Bimora Blog Pro is a modern, full-stack blog platform built with React, TypeScript, Express, and PostgreSQL. It features a content-first design philosophy with bilingual support (English/Arabic), admin dashboard for content management, and a rich reading experience. The platform emphasizes typography, elegant design, and responsive layouts inspired by Medium, Ghost, and Notion.
+Bemora Gaming Blog is a modern, full-stack gaming blog platform built with React, TypeScript, Express, and PostgreSQL. It features a content-first design philosophy with bilingual support (English/Arabic), admin dashboard for content management, and a rich reading experience. The platform emphasizes typography, elegant design, and responsive layouts inspired by Medium, Ghost, and Notion.
 
 ## User Preferences
 

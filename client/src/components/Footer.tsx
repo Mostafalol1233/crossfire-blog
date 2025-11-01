@@ -26,10 +26,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           <div>
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-destructive bg-clip-text text-transparent mb-4">
-              Bimora
+              Bemora
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Your source for modern web development knowledge and tech insights.
+              Your source for CrossFire gaming news and community updates.
             </p>
           </div>
 
