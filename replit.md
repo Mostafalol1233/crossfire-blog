@@ -1,8 +1,8 @@
-# Bemora Gaming Blog
+# Biomera Gaming Blog
 
 ## Overview
 
-Bemora Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and in-memory storage. Originally a blog platform, it has been transformed into a gaming-focused site featuring a news section with CrossFire-style grid layouts, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes bilingual support (English/Arabic), responsive design, and engaging visual experiences.
+Biomera Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and in-memory storage. Originally a blog platform, it has been transformed into a gaming-focused site featuring a news section with CrossFire-style grid layouts, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes bilingual support (English/Arabic), responsive design, and engaging visual experiences.
 
 ## User Preferences
 
@@ -84,7 +84,7 @@ Preferred communication style: Simple, everyday language.
 
 **Admin Pages**
 - **Admin Login**: Password authentication to obtain JWT token
-- **Admin Dashboard**: Create/edit/delete posts and events, view stats, manage content
+- **Admin Dashboard**: Create/edit/delete posts and events, view stats, manage content, upload images to catbox.moe
 
 ### Design System Implementation
 
@@ -144,7 +144,8 @@ Preferred communication style: Simple, everyday language.
 - **react-icons**: Additional icon sets (including brand icons)
 
 ### Asset Management
-- Static assets stored in `attached_assets/` directory
+- Static assets stored in `attached_assets/` directory served at `/assets` route
+- Static file serving using Express middleware with proper ESM path resolution (fileURLToPath)
 - AI-generated CrossFire-themed images:
   - Tactical assault rifle weapon (tactical_assault_rifle_weapon_17c651c5.png)
   - Intense tactical combat scene (intense_tactical_combat_scene_c8202806.png)
@@ -152,13 +153,17 @@ Preferred communication style: Simple, everyday language.
   - Female tactical operator character (female_tactical_operator_character_7f8de27c.png)
   - Male tactical mercenary character (male_tactical_mercenary_character_4eb7f00f.png)
 - Vite alias configuration for easy asset imports (@assets)
+- **Catbox.moe Integration**: Admin dashboard includes image upload feature with authenticated API endpoint (`/api/upload-image`) that uploads to catbox.moe and returns public URLs
 
 ## Recent Changes (November 2025)
 
-### CrossFire Gaming Transformation
-- **Rebranding**: Changed site name from "Bimora" to "Bemora" across all pages and components
+### CrossFire Gaming Transformation & Platform Enhancements
+- **Rebranding**: Changed site name from "Bimora"/"Bemora" to "Biomera" across all pages and components
 - **News Page**: Created CrossFire-style news grid with featured hero card, hover effects, and static display (no navigation)
 - **Mercenaries Page**: Implemented character showcase gallery with smooth hover-to-enlarge effect using CSS scale transforms
 - **Navigation**: Added News and Mercenaries links to main navigation menu
 - **Mock Data**: Populated storage with CrossFire-themed news items (6 items) and mercenary characters (10 items)
 - **Visual Design**: Enhanced hover interactions while maintaining layout stability (no layout shifts on hover)
+- **Static Asset Serving**: Fixed image serving by implementing Express static middleware for `attached_assets/` folder using proper ESM path resolution (fileURLToPath instead of import.meta.dirname)
+- **CrossFire 2025 Roadmap Article**: Created comprehensive article with real game content including new maps (Mid Line, Underground Raid, Maze, Cross Zone, Museum 13), weapons (Classic series, TMP Predator, AR57 Tactical, Kukri, themed collections), characters (Clara-Victorious, JON Lotus, Kaia, Game Girl, Veteran Hero), CrossFire Pass Season 9, CrossFire: Legends beta, Esports World Cup 2025, and quality-of-life improvements
+- **Image Upload Feature**: Added catbox.moe integration to admin dashboard with authenticated multipart POST endpoint (`/api/upload-image`), file selection UI, upload progress indicator, and copyable public URL output for easy image hosting
