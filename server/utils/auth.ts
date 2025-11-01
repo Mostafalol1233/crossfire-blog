@@ -35,12 +35,18 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   
+  console.log('[AUTH] Authorization header:', authHeader ? 'present' : 'missing');
+  
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log('[AUTH] No Bearer token found');
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   const token = authHeader.substring(7);
+  console.log('[AUTH] Token extracted, length:', token.length);
+  
   const payload = verifyToken(token);
+  console.log('[AUTH] Token verification result:', payload ? 'valid' : 'invalid');
 
   if (!payload) {
     return res.status(401).json({ error: "Invalid token" });
