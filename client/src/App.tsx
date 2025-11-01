@@ -12,7 +12,9 @@ import Article from "@/pages/Article";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import News from "@/pages/News";
+import NewsDetail from "@/pages/NewsDetail";
 import Mercenaries from "@/pages/Mercenaries";
+import GraveGames from "@/pages/GraveGames";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import NotFound from "@/pages/not-found";
@@ -22,7 +24,9 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/news" component={News} />
+      <Route path="/news/:id" component={NewsDetail} />
       <Route path="/mercenaries" component={Mercenaries} />
+      <Route path="/grave-games" component={GraveGames} />
       <Route path="/article/:id" component={Article} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />

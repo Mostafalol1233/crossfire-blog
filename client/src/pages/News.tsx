@@ -1,13 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
+import { Link } from "wouter";
 
 interface NewsItem {
   id: string;
   title: string;
   dateRange: string;
   image: string;
+  category: string;
+  content: string;
+  author: string;
   featured?: boolean;
 }
 
@@ -41,34 +46,46 @@ export default function News() {
                 index === 0 ? "md:col-span-2 md:row-span-2" : ""
               }`}
             >
-              <Card
-                className={`relative overflow-hidden group hover-elevate active-elevate-2 transition-all duration-300 cursor-pointer ${
-                  index === 0 ? "h-full min-h-[400px]" : "h-[300px]"
-                }`}
-                data-testid={`card-news-${item.id}`}
-              >
-                <div className="relative w-full h-full">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h3
-                      className={`font-bold mb-2 ${
-                        index === 0
-                          ? "text-3xl md:text-4xl"
-                          : "text-xl md:text-2xl"
-                      }`}
-                    >
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-white/80">{item.dateRange}</p>
+              <Link href={`/news/${item.id}`}>
+                <Card
+                  className={`relative overflow-hidden group hover-elevate active-elevate-2 transition-all duration-300 cursor-pointer ${
+                    index === 0 ? "h-full min-h-[400px]" : "h-[300px]"
+                  }`}
+                  data-testid={`card-news-${item.id}`}
+                >
+                  <div className="relative w-full h-full">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                    
+                    <div className="absolute top-4 left-4">
+                      <Badge 
+                        variant="secondary" 
+                        className="backdrop-blur-sm bg-background/80"
+                        data-testid={`badge-category-${item.category.toLowerCase()}`}
+                      >
+                        {item.category}
+                      </Badge>
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <h3
+                        className={`font-bold mb-2 ${
+                          index === 0
+                            ? "text-3xl md:text-4xl"
+                            : "text-xl md:text-2xl"
+                        }`}
+                      >
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-white/80">{item.dateRange}</p>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </Link>
             </div>
           ))}
         </div>

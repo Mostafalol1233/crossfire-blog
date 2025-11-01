@@ -44,7 +44,7 @@ export default function Mercenaries() {
                 key={merc.id}
                 className="relative group overflow-visible"
                 style={{
-                  width: "200px",
+                  width: "300px",
                   flexShrink: 0,
                 }}
                 onMouseEnter={() => setHoveredId(merc.id)}

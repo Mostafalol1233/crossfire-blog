@@ -16,6 +16,9 @@ export interface NewsItem {
   dateRange: string;
   image: string;
   featured?: boolean;
+  category: string;
+  content: string;
+  author: string;
 }
 
 export interface Mercenary {
@@ -236,41 +239,166 @@ Stay tuned to official channels for the latest updates, and prepare for the most
     // Initialize news items
     const newsItems: NewsItem[] = [
       {
-        id: "1",
-        title: "MYSTIC MOONLIGHT MARKET",
+        id: "mystic-moonlight-market",
+        title: "Mystic Moonlight Market",
         dateRange: "October 15 - November 4",
         image: "/assets/news-sapphire.jpg",
+        category: "Events",
+        author: "[GM]Ganbatte",
         featured: true,
+        content: `Attention Mercenaries!!
+
+For there to be darkness there must be light. In the shadows of the night, when the abyss devours all light possible, the light of the Mystic Moonlight Market cuts through it all!
+
+From October 15th to November 4th, the USP Match-Obsidian Beast illuminates the Lapis Prospect alongside Corinne in the Black Market! Gather them to your side to also take home their Namecards and Sprays.
+
+Available Items:
+- [NC]USP Match-Obsidian Beast + [SP]USP Match-Obsidian Beast
+- [NC] Corinne + [SP] Corinne
+
+Got your eyes on more than one prize? Check out the other weapons also on display in the Lapis Prospect!
+
+Featured Weapons:
+- M14EBR-S-Carapace Harvester
+- M200Cheytac-Dominator Harvester
+- COP.357-Dominator Harvester
+- M37 Stakeout-Harvester
+- Huskbreaker
+
+## M4A1-S & Barrett Infinity Weapon Select Box
+
+Not to be outdone in matters of light and darkness, the M4A1-S & Barrett Infinity Weapon Select Box is showing off in style!
+
+Available celestial beings:
+- M4A1-S-Angel
+- M4A1-S-Demon
+- Barrett-Angel
+- Barrett-Demon
+
+## Smoke-Jackstalk Bonus
+
+Wait, there is something waiting in the fog! The Smoke-Jackstalk! For every 50 Lapis you buy, you will receive one Smoke-Jackstalk - with no limit!
+
+Will you follow the light to your destiny, Mercenaries? Or...Will you let the darkness embrace you?
+
+-CrossFire Team`
       },
       {
-        id: "2",
-        title: "CROSSFIRE ROADMAP",
+        id: "cf-event-pass-season-5",
+        title: "CF Event Pass Season 5 Rewind",
+        dateRange: "September 30 - December 3",
+        image: "/assets/feature-weap.jpg",
+        category: "Events",
+        author: "[GM]Ganbatte",
+        content: `Attention Mercenaries,
+
+Sometimes the best way to keep things fresh is to rewind back to basics!
+
+CF Event Pass Season 5: Rewind has begun! From September 30 to December 3, don't adjust your monitors - we really are going retro. This season brings arcade style treasures, mercenaries who have seen real battle, and other rewards.
+
+## Here's what you can Rewind to:
+
+Complete missions to earn Battle Coins and unlock tiered rewards.
+
+Spend your Battle Coins in the Coin Shop, stocked with exclusive loot.
+
+Some rewards require specific pass levels to unlock, so don't let your progress go cold!
+
+## Premium Event Pass
+
+Premium Event Pass is available for 30,000 ZP, unlocking even more legendary items. To reach the highest peaks of power, you'll need to redeem rewards in order. Once you hit Level 100 and you have claimed all your premium loot, you can try your luck in the new and fabled Bonus Prospect.
+
+## Extra Levels & Battle Coins
+
+Missed a few missions or rewound too far? No worries, you can purchase levels and even receive extra Battle Coins as a bonus. But beware: unused coins will vanish after the grace period once the season ends, so spend them before they disappear!
+
+Go Back to The Action, Mercenaries!`
+      },
+      {
+        id: "cfs-super-fans",
+        title: "CFS Super Fans",
+        dateRange: "October 22 - November 4",
+        image: "/assets/news-superfans.jpg",
+        category: "Events",
+        author: "[GM]Xenon",
+        content: `Attention Mercenaries,
+
+CFS Super Fans has arrived! Show your support for your favorite Pro team and score some epic weapons from the Citrine Well while you're at it!
+
+From October 22nd until November 4th, this special event will bring an exciting touch to your CrossFire experience. During this period, the Citrine Well will serve as your portal to unlock an arsenal of CFS-themed weapons. Whether cheering for your favorite team or diving into the game, this is your chance to enhance your gameplay and celebrate the spirit of competition.
+
+## New Weapons Available
+
+- M4A1-S-CFS Sunfire Iron Beast
+- AWM-CFS Sunfire Ironhawk
+- Barrett-CFS Sunfire Demon
+
+## Returning Weapons
+
+- QBZ-03-CFS Mirage Jewelry
+- Scar Light-S-CFS Dusk Tiger
+- Cheytac-CFS Jupiter Dominator
+
+## Weapon Select Boxes
+
+### CFS Fervor Weapon Select Box
+- AK47-K-CFS Fervor
+- AWM-CFS Fervor
+- D.Eagle-CFS Fervor
+- J.Knife-CFS Fervor
+
+### CFS Bliss Weapon Select Box
+- AA-12-CFS Bliss
+- Barrett-CFS Bliss
+- COP.357-CFS Bliss
+- D.Karambit-CFS Bliss
+
+### CFS24 GF Weapon Select Box
+- M4A1-S-CFS24 GF
+- FRF2-CFS24 GF
+- Anaconda-CFS24 GF
+- B.Knuckles-CFS24 GF
+
+## Special Features
+
+By purchasing at this special CFS Citrine Well during the event period, you will get the chance to win some amazing weapons, and a portion of the proceeds will also go directly to 2025 eSports.
+
+If you don't win a weapon, you will still gain a random amount of exchange coins from opening Citrine crates, which you can use to redeem each weapon once.
+
+Each Citrine you purchase also gives you a Wishing Ticket with a random amount of Wishing EXP. The Wishing Well will grant your favorite weapons once you have accumulated enough Wishing EXP.
+
+Once you have earned enough Wishing EXP, you can redeem your prize and switch to another wish. However, be careful not to switch while you have already placed EXP, or your progress will be reset.
+
+Don't miss out! Join the celebration and embrace the competition!
+
+-CrossFire Team`
+      },
+      {
+        id: "crossfire-2025-roadmap",
+        title: "CrossFire 2025 Roadmap",
         dateRange: "2025 Updates",
         image: "/assets/feature-crossfire.jpg",
+        category: "News",
+        author: "Biomera Team",
+        content: "CrossFire 2025: The Ultimate Gaming Experience Awaits - New maps, weapons, characters, CF Pass Season 9, mobile game return, Esports World Cup debut, and the development of CrossFire 2."
       },
       {
-        id: "3",
-        title: "CF EVENT PASS SEASON 5",
-        dateRange: "Rewind Edition",
-        image: "/assets/feature-weap.jpg",
-      },
-      {
-        id: "4",
-        title: "CFS SUPER FANS",
-        dateRange: "Oct 22 - Nov 4",
-        image: "/assets/news-superfans.jpg",
-      },
-      {
-        id: "5",
-        title: "THE SPIDER'S WEB",
-        dateRange: "Oct 1 - 31",
+        id: "grave-games",
+        title: "Grave Games - The Spider's Web",
+        dateRange: "October 1 - 31",
         image: "/assets/news-gravegames.jpg",
+        category: "Events",
+        author: "CrossFire Team",
+        content: "Enter the Spider's Web this Halloween season! Complete challenges, earn exclusive rewards, and check your progress through the Grave Games portal."
       },
       {
-        id: "6",
-        title: "BOO-TIQUE BARGAINS",
-        dateRange: "Oct 29 - Nov 2",
+        id: "boo-tique-bargains",
+        title: "Boo-tique Bargains",
+        dateRange: "October 29 - November 2",
         image: "/assets/news-halloween.jpg",
+        category: "Events",
+        author: "CrossFire Team",
+        content: "Get spooky savings at the Boo-tique! Limited time Halloween deals on exclusive weapons, characters, and cosmetic items. Don't miss these frightfully good bargains!"
       },
     ];
 
