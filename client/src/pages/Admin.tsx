@@ -22,6 +22,9 @@ import {
   Trash2,
   Edit,
   LogOut,
+  Upload,
+  Copy,
+  CheckCircle,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -38,7 +41,7 @@ export default function Admin() {
     image: "",
     category: "Tutorials",
     tags: "",
-    author: "Bimora Team",
+    author: "Biomera Team",
     featured: false,
     readingTime: 5,
   });
@@ -48,6 +51,10 @@ export default function Admin() {
     date: "",
     type: "upcoming" as "upcoming" | "trending",
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const { data: stats } = useQuery<{
     totalPosts: number;
@@ -79,7 +86,7 @@ export default function Admin() {
         image: "",
         category: "Tutorials",
         tags: "",
-        author: "Bimora Team",
+        author: "Biomera Team",
         featured: false,
         readingTime: 5,
       });
@@ -137,6 +144,48 @@ export default function Admin() {
       toast({ title: "Failed to delete event", variant: "destructive" });
     },
   });
+
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUploadedImageUrl(data.url);
+      setImageFile(null);
+      toast({ title: "Image uploaded successfully!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to upload image", variant: "destructive" });
+    },
+  });
+
+  const handleImageUpload = () => {
+    if (imageFile) {
+      uploadImageMutation.mutate(imageFile);
+    }
+  };
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(uploadedImageUrl);
+    setCopied(true);
+    toast({ title: "URL copied to clipboard!" });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleCreatePost = () => {
     createPostMutation.mutate({
@@ -387,6 +436,73 @@ export default function Admin() {
           </div>
 
           <div>
+            <h2 className="text-2xl font-semibold mb-4">Image Upload</h2>
+            
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Upload to Catbox.moe</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        setUploadedImageUrl("");
+                      }
+                    }}
+                    data-testid="input-image-upload"
+                  />
+                  {imageFile && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Selected: {imageFile.name}
+                    </p>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={handleImageUpload}
+                  disabled={!imageFile || uploadImageMutation.isPending}
+                  className="w-full"
+                  data-testid="button-upload-image"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploadImageMutation.isPending ? "Uploading..." : "Upload Image"}
+                </Button>
+
+                {uploadedImageUrl && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Image URL:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={uploadedImageUrl}
+                        readOnly
+                        data-testid="input-uploaded-url"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopyUrl}
+                        data-testid="button-copy-url"
+                      >
+                        {copied ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Use this URL in your posts for images hosted on catbox.moe
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <h2 className="text-2xl font-semibold mb-4">Events Ribbon</h2>
 
             <Card className="mb-6">

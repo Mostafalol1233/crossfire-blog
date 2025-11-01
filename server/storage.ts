@@ -74,6 +74,165 @@ export class MemStorage implements IStorage {
   }
 
   private initializeMockData() {
+    // Initialize posts with a featured CrossFire article
+    const initialPosts: Post[] = [
+      {
+        id: "crossfire-2025-roadmap",
+        title: "CrossFire 2025 Roadmap: Everything Coming This Year",
+        content: `# CrossFire 2025: The Ultimate Gaming Experience Awaits
+
+The iconic first-person shooter CrossFire is experiencing a massive revival in 2025, with Smilegate Entertainment rolling out an ambitious roadmap packed with new content, features, and global expansion initiatives.
+
+## New Maps Coming to CrossFire
+
+CrossFire is expanding its battlefield roster with five exciting new maps designed for different playstyles:
+
+### Mid Line Map (Search & Destroy)
+A tactical masterpiece featuring narrow corridors and strategic chokepoints, perfect for coordinated team play. Expect intense close-quarters combat with multiple bombsite approaches.
+
+### Forest Map (Team Deathmatch)
+Set in a lush wilderness environment, this map offers a mix of open sightlines and dense foliage for stealth gameplay. Natural cover and elevation changes create dynamic engagements.
+
+### Battle Zone (Mass Brawl)
+An all-out warfare map designed for large-scale battles, featuring multiple capture points and vehicle spawn locations.
+
+### Cross Zone (Event & Random Buff)
+A unique event map with randomly spawning power-ups and special abilities, keeping every match unpredictable and exciting.
+
+### Museum 13 (Novice Mode)
+A beginner-friendly map designed to help new players learn the fundamentals of CrossFire in a controlled environment.
+
+## New Weapons & Weapon Skins
+
+2025 brings an arsenal of new weapons and stunning skin collections:
+
+### Classic Series
+- **M4A1-S Born Beast**: A legendary variant with enhanced stats
+- **AWM-Infinite Dragon**: The ultimate sniper rifle with dragon-themed aesthetics
+- **FAMAS G2-Nova Lance**: A futuristic assault rifle design
+
+### Esports 2025 Collection
+Celebrate competitive CrossFire with tournament-themed weapons:
+- AK47-K T. Esports
+- AN94-S Esports
+- SR-25-D.K. Esports
+- Outlaw T. Axe-Esports
+
+### Special Edition Weapons
+- **QBZ-03-Unicorn Beast**: Features a unique leveling progression system
+- **M82A1-Prestige Glow**: A premium sniper with glowing effects
+- **AA-12-T. Gunpowder Awaken**: An explosive shotgun design
+
+### Themed Collections
+- Beijing Opera Kukri (traditional Chinese aesthetics)
+- Twilight Verdict series
+- Flower Shadow series
+- Purple Heaven series
+
+## New Characters
+
+Meet the latest mercenaries joining the CrossFire roster:
+
+- **Clara-Victorious & Maiden-Dark Victorious**: Powerful female operators
+- **JON Lotus Character**: A tactical specialist
+- **Kaia Character**: An agile infiltrator
+- **Game Girl Character**: A tech-savvy combatant
+- **Veteran Hero Character**: An experienced warrior
+
+## CrossFire Pass Season 9
+
+The ninth season of CrossFire Pass arrives with an **Esports theme**, featuring:
+- Exclusive esports-themed weapon skins
+- Limited-time character outfits
+- Premium rewards across 100+ tiers
+- Free and premium track options
+
+## CrossFire: Legends Returns to Southeast Asia
+
+After previous setbacks, CrossFire: Legends is making a comeback in Southeast Asia with a comprehensive beta test:
+
+### Beta Test Details
+- **Dates**: July 23 - August 22, 2025
+- **Regions**: Malaysia, Indonesia, Thailand, Philippines
+- **Full Launch**: Second half of 2025
+
+### Game Modes
+- Search & Destroy (classic tactical gameplay)
+- Team Deathmatch
+- Free-For-All
+- Melee-Only battles
+- Sniper-Only mode (added mid-beta)
+
+### Featured Content
+- 13 classic maps including Black Widow, Desert, and Transport Ship
+- Iconic weapons like AK47-Beast, M4A1-Iron Beast
+- Unique Southeast Asian themed skins and operators
+- Full localization in Thai, Bahasa Indonesia, Malay, and Filipino
+
+### Technical Excellence
+- Unity Engine powered for smooth performance
+- Optimized for devices with as little as 1GB RAM
+- Gyroscope aiming support
+- Fully customizable HUD
+
+## Esports World Cup 2025
+
+CrossFire makes its debut at the **Esports World Cup 2025** in Riyadh, Saudi Arabia, marking a major milestone for the franchise:
+- First major appearance at a global esports event
+- Substantial prize pools
+- Top international teams competing
+- Live streaming coverage
+
+## Quality-of-Life Improvements
+
+Smilegate is committed to enhancing the player experience with:
+- **Enhanced Graphics**: Optimized lighting systems and improved textures
+- **Improved Matchmaking**: Faster queue times and better skill-based pairing
+- **Customizable Settings**: More graphics options for all PC configurations
+- **Weapon Balancing**: Regular adjustments to maintain competitive integrity
+- **Anti-Cheat Updates**: Continued development of security measures
+
+## The Future: CrossFire 2
+
+Development is underway for **CrossFire 2**, with Smilegate actively recruiting talented developers. While details remain under wraps, this next-generation sequel promises to revolutionize the franchise with cutting-edge technology and innovative gameplay mechanics.
+
+## Regional Expansion
+
+CrossFire is doubling down on regional content:
+- Localized events and tournaments
+- Region-specific character designs
+- Culturally inspired weapon skins
+- Community-driven content creation programs
+
+## Release Timeline
+
+- **Q1 2025**: New maps and CF Pass Season 9
+- **Q2 2025**: CrossFire: Legends beta test
+- **Mid-2025**: Esports World Cup appearance
+- **H2 2025**: Mobile game full launch
+- **Ongoing**: Weekly content updates and seasonal events
+
+---
+
+## Conclusion
+
+CrossFire's 2025 roadmap demonstrates Smilegate's commitment to revitalizing this legendary FPS franchise. With new maps, weapons, characters, mobile expansion, and a strong esports push, CrossFire is positioned for a major comeback. Whether you're a veteran player or new to the game, 2025 is the perfect time to experience the intense tactical combat that made CrossFire a global phenomenon.
+
+Stay tuned to official channels for the latest updates, and prepare for the most action-packed year in CrossFire history!`,
+        summary: "Discover everything coming to CrossFire in 2025: new maps, weapons, characters, CF Pass Season 9, mobile game return, Esports World Cup debut, and the development of CrossFire 2.",
+        image: "/assets/generated_images/intense_tactical_combat_scene_c8202806.png",
+        category: "News",
+        tags: ["CrossFire", "2025", "Roadmap", "Updates", "Esports", "Mobile"],
+        author: "Biomera Team",
+        featured: true,
+        readingTime: 8,
+        views: 15420,
+        createdAt: new Date("2025-11-01")
+      }
+    ];
+
+    initialPosts.forEach((post) => this.posts.set(post.id, post));
+
     // Initialize news items
     const newsItems: NewsItem[] = [
       {

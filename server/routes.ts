@@ -1,9 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { insertPostSchema, insertCommentSchema, insertEventSchema } from "@shared/schema";
 import { generateToken, verifyAdminPassword, requireAuth } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
+
+// Configure multer for memory storage
+const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -258,6 +262,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mercenaries = await storage.getAllMercenaries();
       res.json(mercenaries);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Image upload route
+  app.post("/api/upload-image", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Create form data for catbox.moe
+      const formData = new FormData();
+      formData.append('reqtype', 'fileupload');
+      
+      // Convert buffer to blob for FormData
+      const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+      formData.append('fileToUpload', blob, req.file.originalname);
+
+      // Upload to catbox.moe
+      const response = await fetch('https://catbox.moe/user/api.php', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload to catbox.moe');
+      }
+
+      const imageUrl = await response.text();
+      
+      res.json({ url: imageUrl.trim() });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
