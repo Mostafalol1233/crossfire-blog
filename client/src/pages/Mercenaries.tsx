@@ -42,9 +42,10 @@ export default function Mercenaries() {
             {mercenaries.map((merc) => (
               <div
                 key={merc.id}
-                className="relative group overflow-visible"
+                className="relative group"
                 style={{
                   width: "140px",
+                  height: "450px",
                   flexShrink: 0,
                 }}
                 onMouseEnter={() => setHoveredId(merc.id)}
@@ -52,9 +53,10 @@ export default function Mercenaries() {
                 data-testid={`mercenary-${merc.id}`}
               >
                 <div
-                  className="relative h-[450px] overflow-hidden transition-all duration-500"
+                  className="absolute inset-0 overflow-hidden transition-all duration-500"
                   style={{
                     transform: hoveredId === merc.id ? "scale(1.8)" : "scale(1)",
+                    transformOrigin: "center center",
                     zIndex: hoveredId === merc.id ? 10 : 1,
                   }}
                 >
