@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema } from "@shared/schema";
+import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema } from "@shared/schema";
 import { generateToken, verifyAdminPassword, requireAuth } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 
@@ -167,12 +167,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/posts/:id/comments", async (req, res) => {
     try {
       const { id } = req.params;
-      const { author, content } = req.body;
+      const { author, content, parentCommentId } = req.body;
       
       const commentData = {
         postId: id,
         name: author,
         content,
+        parentCommentId: parentCommentId || null,
       };
       
       const data = insertCommentSchema.parse(commentData);
@@ -303,6 +304,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(mercenaries);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Ticket routes
+  app.get("/api/tickets", requireAuth, async (req, res) => {
+    try {
+      const tickets = await storage.getAllTickets();
+      const formattedTickets = tickets.map((ticket) => ({
+        ...ticket,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
+      }));
+      res.json(formattedTickets);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/tickets/my/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      const tickets = await storage.getTicketsByEmail(email);
+      const formattedTickets = tickets.map((ticket) => ({
+        ...ticket,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
+      }));
+      res.json(formattedTickets);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/tickets/:id", async (req, res) => {
+    try {
+      const ticket = await storage.getTicketById(req.params.id);
+      
+      if (!ticket) {
+        return res.status(404).json({ error: "Ticket not found" });
+      }
+
+      const formattedTicket = {
+        ...ticket,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
+      };
+
+      res.json(formattedTicket);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/tickets", async (req, res) => {
+    try {
+      const data = insertTicketSchema.parse(req.body);
+      const ticket = await storage.createTicket(data);
+      
+      const formattedTicket = {
+        ...ticket,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
+      };
+
+      res.status(201).json(formattedTicket);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/tickets/:id", requireAuth, async (req, res) => {
+    try {
+      const updates = req.body;
+      const ticket = await storage.updateTicket(req.params.id, updates);
+      
+      if (!ticket) {
+        return res.status(404).json({ error: "Ticket not found" });
+      }
+
+      const formattedTicket = {
+        ...ticket,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
+      };
+
+      res.json(formattedTicket);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/tickets/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteTicket(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Ticket not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/tickets/:id/replies", async (req, res) => {
+    try {
+      const replies = await storage.getTicketReplies(req.params.id);
+      
+      const formattedReplies = replies.map((reply) => ({
+        ...reply,
+        createdAt: formatDate(reply.createdAt),
+      }));
+
+      res.json(formattedReplies);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/tickets/:id/replies", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { authorName, content, isAdmin } = req.body;
+      
+      const replyData = {
+        ticketId: id,
+        authorName,
+        content,
+        isAdmin: isAdmin || false,
+      };
+      
+      const data = insertTicketReplySchema.parse(replyData);
+      const reply = await storage.createTicketReply(data);
+      
+      const formattedReply = {
+        ...reply,
+        createdAt: formatDate(reply.createdAt),
+      };
+
+      res.status(201).json(formattedReply);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
   });
 

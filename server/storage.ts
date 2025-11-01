@@ -9,11 +9,17 @@ import {
   type InsertEvent,
   type News,
   type InsertNews,
+  type Ticket,
+  type InsertTicket,
+  type TicketReply,
+  type InsertTicketReply,
   users,
   posts,
   comments,
   events,
-  news
+  news,
+  tickets,
+  ticketReplies
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -68,6 +74,18 @@ export interface IStorage {
 
   // Mercenaries methods
   getAllMercenaries(): Promise<Mercenary[]>;
+
+  // Ticket methods
+  getAllTickets(): Promise<Ticket[]>;
+  getTicketById(id: string): Promise<Ticket | undefined>;
+  getTicketsByEmail(email: string): Promise<Ticket[]>;
+  createTicket(ticket: InsertTicket): Promise<Ticket>;
+  updateTicket(id: string, ticket: Partial<InsertTicket>): Promise<Ticket | undefined>;
+  deleteTicket(id: string): Promise<boolean>;
+
+  // Ticket Reply methods
+  getTicketReplies(ticketId: string): Promise<TicketReply[]>;
+  createTicketReply(reply: InsertTicketReply): Promise<TicketReply>;
 }
 
 export class MemStorage implements IStorage {
@@ -77,6 +95,8 @@ export class MemStorage implements IStorage {
   private events: Map<string, Event>;
   private news: Map<string, NewsItem>;
   private mercenaries: Map<string, Mercenary>;
+  private tickets: Map<string, Ticket>;
+  private ticketReplies: Map<string, TicketReply>;
 
   constructor() {
     this.users = new Map();
@@ -85,6 +105,8 @@ export class MemStorage implements IStorage {
     this.events = new Map();
     this.news = new Map();
     this.mercenaries = new Map();
+    this.tickets = new Map();
+    this.ticketReplies = new Map();
     this.initializeMockData();
   }
 
@@ -1220,6 +1242,74 @@ Don't miss out! Join the celebration and embrace the competition!
   async getAllMercenaries(): Promise<Mercenary[]> {
     return Array.from(this.mercenaries.values());
   }
+
+  // Ticket methods
+  async getAllTickets(): Promise<Ticket[]> {
+    return Array.from(this.tickets.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getTicketById(id: string): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
+  }
+
+  async getTicketsByEmail(email: string): Promise<Ticket[]> {
+    return Array.from(this.tickets.values())
+      .filter(ticket => ticket.userEmail === email)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createTicket(ticket: InsertTicket): Promise<Ticket> {
+    const id = randomUUID();
+    const now = new Date();
+    const newTicket: Ticket = {
+      ...ticket,
+      id,
+      status: ticket.status || "open",
+      priority: ticket.priority || "normal",
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.tickets.set(id, newTicket);
+    return newTicket;
+  }
+
+  async updateTicket(id: string, updates: Partial<InsertTicket>): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+
+    const updatedTicket: Ticket = {
+      ...ticket,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
+  }
+
+  async deleteTicket(id: string): Promise<boolean> {
+    return this.tickets.delete(id);
+  }
+
+  // Ticket Reply methods
+  async getTicketReplies(ticketId: string): Promise<TicketReply[]> {
+    return Array.from(this.ticketReplies.values())
+      .filter(reply => reply.ticketId === ticketId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  async createTicketReply(reply: InsertTicketReply): Promise<TicketReply> {
+    const id = randomUUID();
+    const newReply: TicketReply = {
+      ...reply,
+      id,
+      isAdmin: reply.isAdmin || false,
+      createdAt: new Date(),
+    };
+    this.ticketReplies.set(id, newReply);
+    return newReply;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1604,6 +1694,87 @@ export class DatabaseStorage implements IStorage {
 
   async getAllMercenaries(): Promise<Mercenary[]> {
     return Array.from(this.mercenaries.values());
+  }
+
+  async getAllTickets(): Promise<Ticket[]> {
+    try {
+      const result = await db.select().from(tickets).orderBy(desc(tickets.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting all tickets:", error);
+      return [];
+    }
+  }
+
+  async getTicketById(id: string): Promise<Ticket | undefined> {
+    try {
+      const result = await db.select().from(tickets).where(eq(tickets.id, id));
+      return result[0];
+    } catch (error) {
+      console.error("Error getting ticket by id:", error);
+      return undefined;
+    }
+  }
+
+  async getTicketsByEmail(email: string): Promise<Ticket[]> {
+    try {
+      const result = await db.select().from(tickets).where(eq(tickets.userEmail, email)).orderBy(desc(tickets.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting tickets by email:", error);
+      return [];
+    }
+  }
+
+  async createTicket(insertTicket: InsertTicket): Promise<Ticket> {
+    try {
+      const result = await db.insert(tickets).values(insertTicket).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      throw error;
+    }
+  }
+
+  async updateTicket(id: string, updates: Partial<InsertTicket>): Promise<Ticket | undefined> {
+    try {
+      const updateData: any = { ...updates, updatedAt: new Date() };
+      const result = await db.update(tickets).set(updateData).where(eq(tickets.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      return undefined;
+    }
+  }
+
+  async deleteTicket(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(tickets).where(eq(tickets.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      return false;
+    }
+  }
+
+  async getTicketReplies(ticketId: string): Promise<TicketReply[]> {
+    try {
+      const result = await db.select().from(ticketReplies).where(eq(ticketReplies.ticketId, ticketId)).orderBy(ticketReplies.createdAt);
+      return result;
+    } catch (error) {
+      console.error("Error getting ticket replies:", error);
+      return [];
+    }
+  }
+
+  async createTicketReply(insertReply: InsertTicketReply): Promise<TicketReply> {
+    try {
+      const result = await db.insert(ticketReplies).values(insertReply).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating ticket reply:", error);
+      throw error;
+    }
   }
 }
 

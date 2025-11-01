@@ -18,6 +18,8 @@ import GraveGames from "@/pages/GraveGames";
 import Category from "@/pages/Category";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
+import Support from "@/pages/Support";
+import MyTickets from "@/pages/MyTickets";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/mercenaries" component={Mercenaries} />
       <Route path="/grave-games" component={GraveGames} />
       <Route path="/article/:id" component={Article} />
+      <Route path="/support" component={Support} />
+      <Route path="/my-tickets" component={MyTickets} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/admin/login" component={AdminLogin} />

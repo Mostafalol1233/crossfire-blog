@@ -37,6 +37,8 @@ export default function Admin() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [isCreatingNews, setIsCreatingNews] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [ticketReplyContent, setTicketReplyContent] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -97,6 +99,10 @@ export default function Admin() {
 
   const { data: newsItems } = useQuery<any[]>({
     queryKey: ["/api/news"],
+  });
+
+  const { data: tickets } = useQuery<any[]>({
+    queryKey: ["/api/tickets"],
   });
 
   const createPostMutation = useMutation({
@@ -213,6 +219,45 @@ export default function Admin() {
     },
     onError: () => {
       toast({ title: "Failed to delete news item", variant: "destructive" });
+    },
+  });
+
+  const updateTicketStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiRequest(`/api/tickets/${id}`, "PATCH", { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      toast({ title: "Ticket status updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update ticket status", variant: "destructive" });
+    },
+  });
+
+  const addTicketReplyMutation = useMutation({
+    mutationFn: ({ ticketId, content }: { ticketId: string; content: string }) =>
+      apiRequest(`/api/tickets/${ticketId}/replies`, "POST", {
+        authorName: "Admin",
+        content,
+        isAdmin: true,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      toast({ title: "Reply added successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to add reply", variant: "destructive" });
+    },
+  });
+
+  const deleteTicketMutation = useMutation({
+    mutationFn: (id: string) => apiRequest(`/api/tickets/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      toast({ title: "Ticket deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete ticket", variant: "destructive" });
     },
   });
 
@@ -884,6 +929,147 @@ export default function Admin() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Support Tickets</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 space-y-4">
+              <h3 className="text-lg font-medium">All Tickets ({tickets?.length || 0})</h3>
+              {tickets?.map((ticket: any) => (
+                <Card
+                  key={ticket.id}
+                  className={`cursor-pointer hover-elevate ${
+                    selectedTicket?.id === ticket.id ? "border-primary" : ""
+                  }`}
+                  onClick={() => setSelectedTicket(ticket)}
+                  data-testid={`admin-ticket-${ticket.id}`}
+                >
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-sm line-clamp-2" data-testid={`text-admin-ticket-title-${ticket.id}`}>{ticket.title}</h4>
+                        <Badge className={
+                          ticket.status === "open" ? "bg-blue-500" :
+                          ticket.status === "in-progress" ? "bg-yellow-500" :
+                          ticket.status === "resolved" ? "bg-green-500" : "bg-gray-500"
+                        } data-testid={`badge-admin-status-${ticket.id}`}>
+                          {ticket.status}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="outline" data-testid={`badge-admin-priority-${ticket.id}`}>{ticket.priority}</Badge>
+                        <Badge variant="outline" data-testid={`badge-admin-category-${ticket.id}`}>{ticket.category}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground" data-testid={`text-admin-ticket-meta-${ticket.id}`}>
+                        {ticket.userName} • {ticket.createdAt}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="lg:col-span-2">
+              {selectedTicket ? (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <CardTitle className="mb-2" data-testid={`text-admin-ticket-detail-title-${selectedTicket.id}`}>{selectedTicket.title}</CardTitle>
+                        <div className="flex gap-2 flex-wrap mb-4">
+                          <Badge className={
+                            selectedTicket.status === "open" ? "bg-blue-500" :
+                            selectedTicket.status === "in-progress" ? "bg-yellow-500" :
+                            selectedTicket.status === "resolved" ? "bg-green-500" : "bg-gray-500"
+                          } data-testid={`badge-admin-detail-status-${selectedTicket.id}`}>
+                            {selectedTicket.status}
+                          </Badge>
+                          <Badge variant="outline" data-testid={`badge-admin-detail-priority-${selectedTicket.id}`}>{selectedTicket.priority}</Badge>
+                          <Badge variant="outline" data-testid={`badge-admin-detail-category-${selectedTicket.id}`}>{selectedTicket.category}</Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <select
+                          className="border rounded px-2 py-1 text-sm"
+                          value={selectedTicket.status}
+                          onChange={(e) => {
+                            updateTicketStatusMutation.mutate({
+                              id: selectedTicket.id,
+                              status: e.target.value,
+                            });
+                          }}
+                          data-testid={`select-ticket-status-${selectedTicket.id}`}
+                        >
+                          <option value="open">Open</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteTicketMutation.mutate(selectedTicket.id)}
+                          data-testid={`button-delete-ticket-${selectedTicket.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold mb-2">User Details</h4>
+                      <div className="grid md:grid-cols-2 gap-2 text-sm">
+                        <p data-testid={`text-admin-user-name-${selectedTicket.id}`}><strong>Name:</strong> {selectedTicket.userName}</p>
+                        <p data-testid={`text-admin-user-email-${selectedTicket.id}`}><strong>Email:</strong> {selectedTicket.userEmail}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Description</h4>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid={`text-admin-ticket-description-${selectedTicket.id}`}>
+                        {selectedTicket.description}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-4">Admin Reply</h4>
+                      <div className="space-y-3">
+                        <Textarea
+                          placeholder="Type your admin reply..."
+                          value={ticketReplyContent}
+                          onChange={(e) => setTicketReplyContent(e.target.value)}
+                          rows={4}
+                          data-testid={`textarea-admin-reply-${selectedTicket.id}`}
+                        />
+                        <Button
+                          onClick={() => {
+                            if (!ticketReplyContent.trim()) return;
+                            addTicketReplyMutation.mutate({
+                              ticketId: selectedTicket.id,
+                              content: ticketReplyContent,
+                            });
+                            setTicketReplyContent("");
+                          }}
+                          disabled={!ticketReplyContent.trim()}
+                          data-testid={`button-send-admin-reply-${selectedTicket.id}`}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Send Reply
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-12 pb-12 text-center">
+                    <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Select a ticket to view and manage</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>
