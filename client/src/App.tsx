@@ -11,6 +11,8 @@ import Home from "@/pages/Home";
 import Article from "@/pages/Article";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import News from "@/pages/News";
+import Mercenaries from "@/pages/Mercenaries";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import NotFound from "@/pages/not-found";
@@ -19,6 +21,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/news" component={News} />
+      <Route path="/mercenaries" component={Mercenaries} />
       <Route path="/article/:id" component={Article} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />

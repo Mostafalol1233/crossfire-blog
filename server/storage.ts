@@ -10,6 +10,21 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+export interface NewsItem {
+  id: string;
+  title: string;
+  dateRange: string;
+  image: string;
+  featured?: boolean;
+}
+
+export interface Mercenary {
+  id: string;
+  name: string;
+  image: string;
+  role: string;
+}
+
 export interface IStorage {
   // User methods
   getUser(id: string): Promise<User | undefined>;
@@ -32,6 +47,12 @@ export interface IStorage {
   getAllEvents(): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   deleteEvent(id: string): Promise<boolean>;
+
+  // News methods
+  getAllNews(): Promise<NewsItem[]>;
+
+  // Mercenaries methods
+  getAllMercenaries(): Promise<Mercenary[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -39,12 +60,128 @@ export class MemStorage implements IStorage {
   private posts: Map<string, Post>;
   private comments: Map<string, Comment>;
   private events: Map<string, Event>;
+  private news: Map<string, NewsItem>;
+  private mercenaries: Map<string, Mercenary>;
 
   constructor() {
     this.users = new Map();
     this.posts = new Map();
     this.comments = new Map();
     this.events = new Map();
+    this.news = new Map();
+    this.mercenaries = new Map();
+    this.initializeMockData();
+  }
+
+  private initializeMockData() {
+    // Initialize news items
+    const newsItems: NewsItem[] = [
+      {
+        id: "1",
+        title: "MYSTIC MOONLIGHT MARKET",
+        dateRange: "October 15 - November 4",
+        image: "/assets/generated_images/tactical_weapons_arsenal_display_341b61a5.png",
+        featured: true,
+      },
+      {
+        id: "2",
+        title: "CROSSFIRE ROADMAP",
+        dateRange: "2025 Updates",
+        image: "/assets/generated_images/intense_tactical_combat_scene_c8202806.png",
+      },
+      {
+        id: "3",
+        title: "CF EVENT PASS SEASON 5",
+        dateRange: "Rewind Edition",
+        image: "/assets/generated_images/tactical_assault_rifle_weapon_17c651c5.png",
+      },
+      {
+        id: "4",
+        title: "CFS SUPER FANS",
+        dateRange: "Oct 22 - Nov 4",
+        image: "/assets/generated_images/female_tactical_operator_character_7f8de27c.png",
+      },
+      {
+        id: "5",
+        title: "THE SPIDER'S WEB",
+        dateRange: "Oct 1 - 31",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+      },
+      {
+        id: "6",
+        title: "BOO-TIQUE BARGAINS",
+        dateRange: "Oct 29 - Nov 2",
+        image: "/assets/generated_images/tactical_weapons_arsenal_display_341b61a5.png",
+      },
+    ];
+
+    newsItems.forEach((item) => this.news.set(item.id, item));
+
+    // Initialize mercenaries
+    const mercenaries: Mercenary[] = [
+      {
+        id: "1",
+        name: "Annie",
+        image: "/assets/generated_images/female_tactical_operator_character_7f8de27c.png",
+        role: "Desperado",
+      },
+      {
+        id: "2",
+        name: "Holly",
+        image: "/assets/generated_images/female_tactical_operator_character_7f8de27c.png",
+        role: "Sisterhood",
+      },
+      {
+        id: "3",
+        name: "Magnolia",
+        image: "/assets/generated_images/female_tactical_operator_character_7f8de27c.png",
+        role: "Black Mamba",
+      },
+      {
+        id: "4",
+        name: "Lexy",
+        image: "/assets/generated_images/female_tactical_operator_character_7f8de27c.png",
+        role: "Wolf",
+      },
+      {
+        id: "5",
+        name: "Vipers",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Special Forces",
+      },
+      {
+        id: "6",
+        name: "Arch Honorary",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Elite Guard",
+      },
+      {
+        id: "7",
+        name: "Ronin",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Samurai",
+      },
+      {
+        id: "8",
+        name: "Dean",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Specialist",
+      },
+      {
+        id: "9",
+        name: "Thoth",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Guardian",
+      },
+      {
+        id: "10",
+        name: "SFG",
+        image: "/assets/generated_images/male_tactical_mercenary_character_4eb7f00f.png",
+        role: "Special Forces Group",
+      },
+    ];
+
+    mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
   }
 
   // User methods
@@ -141,6 +278,16 @@ export class MemStorage implements IStorage {
 
   async deleteEvent(id: string): Promise<boolean> {
     return this.events.delete(id);
+  }
+
+  // News methods
+  async getAllNews(): Promise<NewsItem[]> {
+    return Array.from(this.news.values());
+  }
+
+  // Mercenaries methods
+  async getAllMercenaries(): Promise<Mercenary[]> {
+    return Array.from(this.mercenaries.values());
   }
 }
 

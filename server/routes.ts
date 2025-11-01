@@ -243,6 +243,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // News routes
+  app.get("/api/news", async (req, res) => {
+    try {
+      const news = await storage.getAllNews();
+      res.json(news);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Mercenaries routes
+  app.get("/api/mercenaries", async (req, res) => {
+    try {
+      const mercenaries = await storage.getAllMercenaries();
+      res.json(mercenaries);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
