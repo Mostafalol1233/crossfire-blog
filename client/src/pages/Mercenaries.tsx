@@ -20,7 +20,7 @@ export default function Mercenaries() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading...</div>
+        <div className="text-lg text-muted-foreground">{t("loading")}</div>
       </div>
     );
   }
@@ -30,10 +30,10 @@ export default function Mercenaries() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-destructive to-primary bg-clip-text text-transparent">
-            MERCENARIES
+            {t("mercenaries").toUpperCase()}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Choose your warrior. Master your destiny.
+            {t("mercenariesSubtitle")}
           </p>
         </div>
 

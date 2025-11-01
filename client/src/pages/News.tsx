@@ -56,7 +56,7 @@ export default function News() {
   if (newsLoading || postsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading...</div>
+        <div className="text-lg text-muted-foreground">{t("loading")}</div>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default function News() {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
-          {t("news")} & Updates
+          {t("news")} {t("newsAndUpdates")}
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
@@ -127,7 +127,7 @@ export default function News() {
             className="backdrop-blur-sm"
             data-testid="button-read-more-news"
           >
-            READ MORE NEWS
+            {t("readMoreNews").toUpperCase()}
           </Button>
         </div>
       </div>

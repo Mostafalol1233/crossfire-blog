@@ -356,4 +356,13 @@
   html * {
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   }
+
+  /* Arabic font support - apply IBM Plex Sans Arabic when language is Arabic */
+  html.font-arabic {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+  
+  html.font-arabic * {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
 }

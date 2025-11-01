@@ -24,10 +24,10 @@ export default function Contact() {
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            {t("contact")} Us
+            {t("contactUs")}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Have a question or suggestion? We'd love to hear from you.
+            {t("contactSubtitle")}
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export default function Contact() {
           <Card>
             <CardContent className="pt-6 text-center">
               <Mail className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-2">Email</h3>
+              <h3 className="font-semibold mb-2">{t("email")}</h3>
               <p className="text-sm text-muted-foreground">
                 contact@bimora.blog
               </p>
@@ -45,9 +45,9 @@ export default function Contact() {
           <Card>
             <CardContent className="pt-6 text-center">
               <MessageSquare className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-2">Chat</h3>
+              <h3 className="font-semibold mb-2">{t("chat")}</h3>
               <p className="text-sm text-muted-foreground">
-                Live chat support
+                {t("liveChatSupport")}
               </p>
             </CardContent>
           </Card>
@@ -55,9 +55,9 @@ export default function Contact() {
           <Card>
             <CardContent className="pt-6 text-center">
               <Send className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-2">Social</h3>
+              <h3 className="font-semibold mb-2">{t("social")}</h3>
               <p className="text-sm text-muted-foreground">
-                Follow us online
+                {t("followUsOnline")}
               </p>
             </CardContent>
           </Card>
@@ -65,13 +65,13 @@ export default function Contact() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Send us a message</CardTitle>
+            <CardTitle>{t("sendUsMessage")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Name</label>
+              <label className="text-sm font-medium mb-2 block">{t("name")}</label>
               <Input
-                placeholder="Your name"
+                placeholder={t("yourName")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 data-testid="input-contact-name"
@@ -79,10 +79,10 @@ export default function Contact() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Email</label>
+              <label className="text-sm font-medium mb-2 block">{t("email")}</label>
               <Input
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t("yourEmail")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 data-testid="input-contact-email"
@@ -90,9 +90,9 @@ export default function Contact() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Message</label>
+              <label className="text-sm font-medium mb-2 block">{t("message")}</label>
               <Textarea
-                placeholder="Tell us what's on your mind..."
+                placeholder={t("tellUsWhatsOnYourMind")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}

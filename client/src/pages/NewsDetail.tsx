@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface NewsItem {
   id: string;
@@ -18,6 +19,7 @@ interface NewsItem {
 export default function NewsDetail() {
   const params = useParams();
   const newsId = params.id;
+  const { t } = useLanguage();
 
   const { data: newsItems = [], isLoading } = useQuery<NewsItem[]>({
     queryKey: ["/api/news"],
@@ -28,7 +30,7 @@ export default function NewsDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading...</div>
+        <div className="text-lg text-muted-foreground">{t("loading")}</div>
       </div>
     );
   }
@@ -36,11 +38,11 @@ export default function NewsDetail() {
   if (!newsItem) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold mb-4">News Not Found</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("newsNotFound")}</h1>
         <Link href="/news">
           <Button variant="outline" data-testid="button-back-to-news">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to News
+            {t("backToNews")}
           </Button>
         </Link>
       </div>
@@ -57,7 +59,7 @@ export default function NewsDetail() {
             data-testid="button-back-to-news"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to News
+            {t("backToNews")}
           </Button>
         </Link>
 
@@ -75,7 +77,7 @@ export default function NewsDetail() {
           </div>
         </div>
 
-        <div className="relative w-full h-[500px] md:h-[600px] lg:h-[700px] rounded-xl overflow-hidden mb-8">
+        <div className="relative w-full h-[600px] md:h-[750px] lg:h-[900px] rounded-xl overflow-hidden mb-8">
           <img
             src={newsItem.image}
             alt={newsItem.title}
@@ -86,7 +88,7 @@ export default function NewsDetail() {
 
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-8">
           <p className="text-sm text-muted-foreground">
-            <strong>Translation Note:</strong> This article will be automatically translated using AI translation API when implemented.
+            <strong>{t("translationNote")}</strong> {t("translationNoteText")}
           </p>
         </div>
 
@@ -173,7 +175,7 @@ export default function NewsDetail() {
         <div className="mt-12 pt-8 border-t">
           <Link href="/news">
             <Button size="lg" data-testid="button-more-news">
-              Read More News
+              {t("readMoreNews")}
             </Button>
           </Link>
         </div>
