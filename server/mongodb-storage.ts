@@ -55,17 +55,17 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   getAllPosts(): Promise<Post[]>;
   getPostById(id: string): Promise<Post | undefined>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined>;
   deletePost(id: string): Promise<boolean>;
   incrementPostViews(id: string): Promise<void>;
-  
+
   getCommentsByPostId(postId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
-  
+
   getAllEvents(): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   deleteEvent(id: string): Promise<boolean>;
@@ -122,19 +122,16 @@ export class MongoDBStorage implements IStorage {
   }
 
   private initializeMercenaries() {
-    const mercenaries: Mercenary[] = [
-      { id: "1", name: "Wolf", image: "https://files.catbox.moe/6npa73.jpeg", role: "Assault" },
-      { id: "2", name: "Vipers", image: "https://files.catbox.moe/4il6hi.jpeg", role: "Sniper" },
-      { id: "3", name: "Sisterhood", image: "https://files.catbox.moe/3o58nb.jpeg", role: "Medic" },
-      { id: "4", name: "Black Mamba", image: "https://files.catbox.moe/r26ox6.jpeg", role: "Scout" },
-      { id: "5", name: "Arch Honorary", image: "https://files.catbox.moe/ctwnqz.jpeg", role: "Tank" },
-      { id: "6", name: "Desperado", image: "https://files.catbox.moe/hh7h5u.jpeg", role: "Engineer" },
-      { id: "7", name: "Ronin", image: "https://files.catbox.moe/eck3jc.jpeg", role: "Samurai" },
-      { id: "8", name: "Dean", image: "https://files.catbox.moe/t78mvu.jpeg", role: "Specialist" },
-      { id: "9", name: "Thoth", image: "https://files.catbox.moe/g4zfzn.jpeg", role: "Guardian" },
-      { id: "10", name: "SFG", image: "https://files.catbox.moe/3bba2g.jpeg", role: "Special Forces Group" },
-    ];
-    mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
+    this.mercenaries.set("1", { id: "1", name: "Wolf", image: "https://files.catbox.moe/6npa73.jpeg", role: "Assault" });
+    this.mercenaries.set("2", { id: "2", name: "Vipers", image: "https://files.catbox.moe/4il6hi.jpeg", role: "Recon" });
+    this.mercenaries.set("3", { id: "3", name: "Sisterhood", image: "https://files.catbox.moe/3o58nb.jpeg", role: "Support" });
+    this.mercenaries.set("4", { id: "4", name: "Ronin", image: "https://files.catbox.moe/eck3jc.jpeg", role: "Sniper" });
+    this.mercenaries.set("5", { id: "5", name: "Desperado", image: "https://files.catbox.moe/hh7h5u.jpeg", role: "Demolition" });
+    this.mercenaries.set("6", { id: "6", name: "Black Mamba", image: "https://files.catbox.moe/r26ox6.jpeg", role: "Infiltrator" });
+    this.mercenaries.set("7", { id: "7", name: "Dean", image: "https://files.catbox.moe/t78mvu.jpeg", role: "Medic" });
+    this.mercenaries.set("8", { id: "8", name: "Arch Honorary", image: "https://files.catbox.moe/ctwnqz.jpeg", role: "Commander" });
+    this.mercenaries.set("9", { id: "9", name: "Thoth", image: "https://files.catbox.moe/g4zfzn.jpeg", role: "Guardian" });
+    this.mercenaries.set("10", { id: "10", name: "SFG", image: "https://files.catbox.moe/3bba2g.jpeg", role: "Special Forces Group" });
   }
 
   async getUser(id: string): Promise<User | undefined> {
