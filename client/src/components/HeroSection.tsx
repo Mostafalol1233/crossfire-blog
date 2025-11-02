@@ -71,7 +71,8 @@ export function HeroSection({ post }: HeroSectionProps) {
           <Button
             asChild
             size="lg"
-            className="backdrop-blur-lg bg-background/80 hover:bg-background/90 border"
+            variant="default"
+            className="backdrop-blur-md bg-primary hover:bg-primary/90 border-2 border-primary-foreground/20 text-primary-foreground font-bold shadow-lg"
             data-testid="button-read-featured"
           >
             <Link href={`/article/${post.id}`}>{t("readMore")}</Link>

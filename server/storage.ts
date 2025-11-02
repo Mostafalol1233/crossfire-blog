@@ -34,12 +34,16 @@ import { randomUUID } from "crypto";
 export interface NewsItem {
   id: string;
   title: string;
+  titleAr?: string;
   dateRange: string;
   image: string;
   featured?: boolean;
   category: string;
   content: string;
+  contentAr?: string;
+  htmlContent?: string;
   author: string;
+  createdAt?: Date;
 }
 
 export interface Mercenary {
@@ -1245,12 +1249,16 @@ Don't miss out! Join the celebration and embrace the competition!
     const news: NewsItem = {
       id,
       title: newsData.title || "",
+      titleAr: newsData.titleAr || "",
       dateRange: newsData.dateRange || "",
       image: newsData.image || "",
       category: newsData.category || "News",
       content: newsData.content || "",
+      contentAr: newsData.contentAr || "",
+      htmlContent: newsData.htmlContent || newsData.content || "",
       author: newsData.author || "",
       featured: newsData.featured ?? false,
+      createdAt: newsData.createdAt || new Date(),
     };
     this.news.set(id, news);
     return news;

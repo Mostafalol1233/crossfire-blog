@@ -4,14 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Download, RefreshCw, Eye, ExternalLink } from "lucide-react";
+import { Download, RefreshCw, Eye, ExternalLink, CheckSquare, Square } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 
 export function ScraperManager() {
@@ -20,12 +22,14 @@ export function ScraperManager() {
   const [previewData, setPreviewData] = useState<any>(null);
   const [previewType, setPreviewType] = useState<"events" | "news" | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
   const previewEventsMutation = useMutation({
     mutationFn: () => apiRequest("/api/scrape/preview/events", "GET"),
     onSuccess: (data: any) => {
       setPreviewData(data);
       setPreviewType("events");
+      setSelectedIndices([]);
       setIsPreviewOpen(true);
     },
     onError: (error: any) => {
@@ -45,6 +49,7 @@ export function ScraperManager() {
     onSuccess: (data: any) => {
       setPreviewData(data);
       setPreviewType("news");
+      setSelectedIndices([]);
       setIsPreviewOpen(true);
     },
     onError: (error: any) => {
@@ -57,7 +62,10 @@ export function ScraperManager() {
   });
 
   const importEventsMutation = useMutation({
-    mutationFn: () => apiRequest("/api/scrape/events", "POST"),
+    mutationFn: (selectedItems?: any[]) => {
+      const body = selectedItems ? { selectedItems } : {};
+      return apiRequest("/api/scrape/events", "POST", body);
+    },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       const message = data.skipped > 0 
@@ -67,6 +75,8 @@ export function ScraperManager() {
         title: "Events Imported",
         description: message,
       });
+      setIsPreviewOpen(false);
+      setSelectedIndices([]);
     },
     onError: (error: any) => {
       toast({
@@ -78,8 +88,10 @@ export function ScraperManager() {
   });
 
   const importNewsMutation = useMutation({
-    mutationFn: () => {
-      const body = forumUrl ? { url: forumUrl } : {};
+    mutationFn: (selectedItems?: any[]) => {
+      const body = selectedItems 
+        ? { selectedItems } 
+        : forumUrl ? { url: forumUrl } : {};
       return apiRequest("/api/scrape/news", "POST", body);
     },
     onSuccess: (data: any) => {
@@ -92,6 +104,8 @@ export function ScraperManager() {
         description: message,
       });
       setForumUrl("");
+      setIsPreviewOpen(false);
+      setSelectedIndices([]);
     },
     onError: (error: any) => {
       toast({
@@ -130,12 +144,12 @@ export function ScraperManager() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => importEventsMutation.mutate()}
+                onClick={() => importEventsMutation.mutate(undefined)}
                 disabled={importEventsMutation.isPending}
                 data-testid="button-import-events"
               >
                 <Download className="h-4 w-4 mr-2" />
-                {importEventsMutation.isPending ? "Importing..." : "Import Events"}
+                {importEventsMutation.isPending ? "Importing..." : "Import All Events"}
               </Button>
             </div>
           </div>
@@ -165,12 +179,12 @@ export function ScraperManager() {
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => importNewsMutation.mutate()}
+                  onClick={() => importNewsMutation.mutate(undefined)}
                   disabled={importNewsMutation.isPending}
                   data-testid="button-import-news"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  {importNewsMutation.isPending ? "Importing..." : "Import News"}
+                  {importNewsMutation.isPending ? "Importing..." : "Import All News"}
                 </Button>
               </div>
             </div>
@@ -185,17 +199,60 @@ export function ScraperManager() {
         </div>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>
                 Preview: {previewType === "events" ? "Events" : "News"} ({previewData?.count || 0} items)
               </DialogTitle>
+              <div className="flex items-center gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const totalItems = previewType === "events" 
+                      ? previewData?.events?.length || 0 
+                      : previewData?.news?.length || 0;
+                    if (selectedIndices.length === totalItems) {
+                      setSelectedIndices([]);
+                    } else {
+                      setSelectedIndices(Array.from({ length: totalItems }, (_, i) => i));
+                    }
+                  }}
+                  data-testid="button-toggle-all"
+                >
+                  {selectedIndices.length === (previewType === "events" ? previewData?.events?.length : previewData?.news?.length) ? (
+                    <>
+                      <Square className="h-4 w-4 mr-2" />
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Select All
+                    </>
+                  )}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {selectedIndices.length} selected
+                </span>
+              </div>
             </DialogHeader>
-            <div className="space-y-3">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
               {previewType === "events" && previewData?.events?.map((event: any, index: number) => (
-                <Card key={index} data-testid={`preview-event-${index}`}>
+                <Card key={index} data-testid={`preview-event-${index}`} className="hover-elevate">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedIndices.includes(index)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedIndices([...selectedIndices, index]);
+                          } else {
+                            setSelectedIndices(selectedIndices.filter(i => i !== index));
+                          }
+                        }}
+                        data-testid={`checkbox-event-${index}`}
+                      />
                       {event.image && (
                         <img
                           src={event.image}
@@ -223,9 +280,20 @@ export function ScraperManager() {
               ))}
 
               {previewType === "news" && previewData?.news?.map((newsItem: any, index: number) => (
-                <Card key={index} data-testid={`preview-news-${index}`}>
+                <Card key={index} data-testid={`preview-news-${index}`} className="hover-elevate">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedIndices.includes(index)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedIndices([...selectedIndices, index]);
+                          } else {
+                            setSelectedIndices(selectedIndices.filter(i => i !== index));
+                          }
+                        }}
+                        data-testid={`checkbox-news-${index}`}
+                      />
                       {newsItem.image && (
                         <img
                           src={newsItem.image}
@@ -252,6 +320,35 @@ export function ScraperManager() {
                 </Card>
               ))}
             </div>
+            <DialogFooter className="pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setIsPreviewOpen(false)}
+                data-testid="button-cancel-import"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const items = previewType === "events" 
+                    ? previewData?.events?.filter((_: any, i: number) => selectedIndices.includes(i))
+                    : previewData?.news?.filter((_: any, i: number) => selectedIndices.includes(i));
+                  
+                  if (previewType === "events") {
+                    importEventsMutation.mutate(items);
+                  } else {
+                    importNewsMutation.mutate(items);
+                  }
+                }}
+                disabled={selectedIndices.length === 0 || importEventsMutation.isPending || importNewsMutation.isPending}
+                data-testid="button-import-selected"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {importEventsMutation.isPending || importNewsMutation.isPending 
+                  ? "Importing..." 
+                  : `Import Selected (${selectedIndices.length})`}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </CardContent>

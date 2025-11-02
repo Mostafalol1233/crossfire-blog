@@ -678,7 +678,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scraper routes for Z8Games events and news
   app.post("/api/scrape/events", requireAuth, async (req, res) => {
     try {
-      const scrapedEvents = await scraper.scrapeEvents();
+      const { selectedItems } = req.body;
+      
+      // If selectedItems provided, use them; otherwise scrape all
+      const scrapedEvents = selectedItems || await scraper.scrapeEvents();
       const existingEvents = await storage.getAllEvents();
       
       const createdEvents = [];
@@ -712,10 +715,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/scrape/news", requireAuth, async (req, res) => {
     try {
-      const { url } = req.body;
+      const { url, selectedItems } = req.body;
       let scrapedNews = [];
       
-      if (url) {
+      // If selectedItems provided, use them; otherwise scrape
+      if (selectedItems) {
+        scrapedNews = selectedItems;
+      } else if (url) {
         const singleNews = await scraper.scrapeSpecificForum(url);
         if (singleNews) {
           scrapedNews.push(singleNews);

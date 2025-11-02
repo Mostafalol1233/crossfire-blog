@@ -15,6 +15,7 @@ interface ScrapedNews {
   image: string;
   category: string;
   content: string;
+  htmlContent?: string;
   author: string;
 }
 
@@ -71,7 +72,21 @@ export class Z8GamesScraper {
         const $el = $(element);
         
         const title = $el.find('h1, h2, h3, .discussion-title, [class*="Title"]').first().text().trim();
-        const content = $el.find('p, .discussion-content, [class*="Message"]').first().text().trim();
+        const contentElement = $el.find('.discussion-content, [class*="Message"]').first();
+        const content = contentElement.text().trim();
+        
+        // Extract HTML content with images
+        let htmlContent = contentElement.html() || '';
+        
+        // Fix relative image URLs in HTML content
+        htmlContent = htmlContent.replace(
+          /src="(\/[^"]+)"/g, 
+          'src="https://z8games.akamaized.net$1"'
+        ).replace(
+          /src='(\/[^']+)'/g, 
+          "src='https://z8games.akamaized.net$1'"
+        );
+        
         const author = $el.find('.author, [class*="Author"], [class*="GM"]').first().text().trim() || 'GM Xenon';
         const dateText = $el.find('time, .date, [class*="Date"]').first().text().trim();
         const imageUrl = $el.find('img').first().attr('src') || '';
@@ -83,6 +98,7 @@ export class Z8GamesScraper {
             image: imageUrl.startsWith('http') ? imageUrl : imageUrl ? `https://z8games.akamaized.net${imageUrl}` : '',
             category: 'Announcements',
             content: content || title,
+            htmlContent: htmlContent,
             author: author.replace(/\[GM\]/gi, '').trim() || 'GM Xenon'
           });
         }
@@ -104,10 +120,24 @@ export class Z8GamesScraper {
       const $ = cheerio.load(html);
       
       const title = $('h1').first().text().trim();
-      const content = $('article p, .Message p').first().text().trim();
+      const contentElement = $('article, .Message, [class*="Message"]').first();
+      const content = contentElement.text().trim();
+      
+      // Extract HTML content with images
+      let htmlContent = contentElement.html() || '';
+      
+      // Fix relative image URLs in HTML content
+      htmlContent = htmlContent.replace(
+        /src="(\/[^"]+)"/g, 
+        'src="https://z8games.akamaized.net$1"'
+      ).replace(
+        /src='(\/[^']+)'/g, 
+        "src='https://z8games.akamaized.net$1'"
+      );
+      
       const author = $('.author, [class*="Author"]').first().text().trim() || 'GM Xenon';
       const dateText = $('time').first().text().trim();
-      const imageUrl = $('article img, .Message img').first().attr('src') || '';
+      const imageUrl = contentElement.find('img').first().attr('src') || '';
       
       if (!title) return null;
       
@@ -117,6 +147,7 @@ export class Z8GamesScraper {
         image: imageUrl.startsWith('http') ? imageUrl : imageUrl ? `https://z8games.akamaized.net${imageUrl}` : '',
         category: 'News',
         content: content || title,
+        htmlContent: htmlContent,
         author: author.replace(/\[GM\]/gi, '').trim() || 'GM Xenon'
       };
     } catch (error) {
@@ -148,6 +179,7 @@ export class Z8GamesScraper {
       category: scraped.category,
       content: scraped.content,
       contentAr: scraped.content,
+      htmlContent: scraped.htmlContent || scraped.content,
       author: scraped.author,
       featured: false
     };
