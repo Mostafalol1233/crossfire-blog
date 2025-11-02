@@ -87,35 +87,34 @@ SFG: https://files.catbox.moe/3bba2g.jpeg
 
 ### 5. ✅ KataBump Deployment Automation
 
-**Problem**: KataBump deployment needs automatic environment setup without manual console commands.
+**Problem**: KataBump deployment needs to work with just `node index.js` - no bash scripts or console commands.
 
 **Solution**:
-- Created fully automated deployment scripts
-- No manual console commands required
-- Everything configured through `.env` file
-- Auto-seeding capability for events and news
-- Comprehensive documentation
+- Updated `index.js` with built-in environment validation
+- Added auto-seeding directly into the server file
+- Everything configured through `.env` file only
+- Cleaned up all unnecessary files
+- Created simple documentation
 
-**New Files in `katabump-deploy/`**:
-- `setup.sh` - Automated setup script with validation
-- `start.sh` - Start server with automatic environment loading
-- `.env.example` - Environment template
-- `README-KATABUMP.md` - Complete deployment guide
-- `server/auto-seed.ts` - Automatic database seeding
+**Updated Files in `katabump-deploy/`**:
+- `index.js` - Added environment validation + auto-seeding
+- `.env.example` - Simple configuration template
+- `README.md` - Deployment guide
+- `QUICKSTART.txt` - Quick reference guide
+- `HOW-TO-DEPLOY.txt` - Step-by-step instructions
+
+**Removed Files** (cleanup):
+- ❌ `setup.sh`, `start.sh`, `start-server.sh` (bash scripts not needed)
+- ❌ Old neon-related files (not using Neon)
+- ❌ Duplicate documentation files
 
 **How to Deploy on KataBump**:
 ```bash
 cd katabump-deploy
-
-# 1. Run setup (creates .env if needed)
-./setup.sh
-
-# 2. Edit .env with your configuration
-nano .env
-
-# 3. Start the server (that's it!)
-./start.sh
+node index.js
 ```
+
+**That's literally it!** Just one command. Everything else is automatic.
 
 **Auto-Seeding Feature**:
 - Set `AUTO_SEED=true` in `.env`
@@ -187,11 +186,25 @@ curl http://localhost:5000/api/mercenaries
 Your current setup is working! The server validates environment variables on startup.
 
 ### Production (KataBump)
+
+**Super Simple - Just One Command:**
+
 ```bash
 cd katabump-deploy
-./setup.sh    # First time only
-./start.sh    # Start the server
+node index.js
 ```
+
+That's it! Everything works automatically:
+- ✅ Environment validation
+- ✅ MongoDB connection
+- ✅ Auto-seeding (if AUTO_SEED=true)
+- ✅ Server starts on port 5000
+
+**First Time Setup:**
+1. Create `.env` file (copy from `.env.example`)
+2. Add your MongoDB URI
+3. Set `AUTO_SEED=true`
+4. Run `node index.js`
 
 ## Environment Variables
 

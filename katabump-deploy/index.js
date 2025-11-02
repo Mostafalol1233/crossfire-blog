@@ -24,6 +24,33 @@ async function ensurePackages() {
 // Run package check before starting
 await ensurePackages();
 
+// Environment validation
+function validateEnv() {
+  const missing = [];
+  
+  if (!process.env.MONGODB_URI) {
+    missing.push('MONGODB_URI');
+  }
+  
+  if (missing.length > 0) {
+    console.error('\n❌ Missing required environment variables:');
+    missing.forEach(v => console.error(`   - ${v}`));
+    console.error('\n📝 Please create a .env file with your MongoDB connection string.\n');
+    console.error('Example .env file:');
+    console.error('MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?appName=YourApp');
+    console.error('PORT=5000');
+    console.error('AUTO_SEED=true\n');
+    process.exit(1);
+  }
+  
+  console.log('✅ Environment variables validated');
+  console.log(`   MongoDB: ✓`);
+  console.log(`   Port: ${process.env.PORT || '5000'}`);
+  console.log(`   Auto-seed: ${process.env.AUTO_SEED === 'true' ? 'enabled' : 'disabled'}\n`);
+}
+
+validateEnv();
+
 // server/index.ts
 import express from "express";
 import path from "path";
@@ -205,10 +232,176 @@ var MongoDBStorage = class {
         await mongoose.connect(mongoUri);
         console.log("MongoDB connected successfully");
         this.initialized = true;
+        
+        // Auto-seed if enabled
+        if (process.env.AUTO_SEED === 'true') {
+          await this.autoSeed();
+        }
       } catch (error) {
         console.error("MongoDB connection error:", error);
         throw error;
       }
+    }
+  }
+  
+  async autoSeed() {
+    try {
+      console.log('\n🌱 Auto-seeding database...');
+      
+      // Seed events
+      const eventCount = await EventModel.countDocuments();
+      if (eventCount === 0) {
+        const eventsData = [
+          {
+            title: "Grave Games Tournament",
+            titleAr: "بطولة ألعاب القبور",
+            description: "Join the ultimate CrossFire Grave Games tournament! Compete against the best players.",
+            descriptionAr: "انضم إلى بطولة CrossFire Grave Games النهائية! تنافس مع أفضل اللاعبين.",
+            date: "November 15-17, 2024",
+            type: "Tournament",
+            image: "https://files.catbox.moe/qu1s79.jpeg"
+          },
+          {
+            title: "Weekend Party Event",
+            titleAr: "حدث حفلة نهاية الأسبوع",
+            description: "Double XP, special rewards, and exclusive weapon crates all weekend!",
+            descriptionAr: "XP مضاعف، ومكافآت خاصة، وصناديق أسلحة حصرية!",
+            date: "November 8-10, 2024",
+            type: "Special Event",
+            image: "https://files.catbox.moe/7e3wr1.jpeg"
+          },
+          {
+            title: "Sapphire Crates Launch",
+            titleAr: "إطلاق صناديق الياقوت",
+            description: "New Sapphire weapon crates with exclusive legendary items!",
+            descriptionAr: "صناديق أسلحة الياقوت الجديدة مع عناصر أسطورية حصرية!",
+            date: "November 1-30, 2024",
+            type: "Limited Time",
+            image: "https://files.catbox.moe/bwn5u2.jpeg"
+          },
+          {
+            title: "Halloween Creative Contest",
+            titleAr: "مسابقة الهالوين الإبداعية",
+            description: "Submit your best CrossFire Halloween artwork!",
+            descriptionAr: "قدم أفضل أعمالك الفنية للهالوين!",
+            date: "October 15 - November 1, 2024",
+            type: "Contest",
+            image: "https://files.catbox.moe/44v7zb.jpeg"
+          },
+          {
+            title: "CF Pass Season 5",
+            titleAr: "الموسم الخامس من CF Pass",
+            description: "Season 5 with amazing rewards and challenges!",
+            descriptionAr: "الموسم الخامس مع مكافآت وتحديات مذهلة!",
+            date: "September 26 - December 26, 2024",
+            type: "Season Pass",
+            image: "https://files.catbox.moe/m8kp3d.jpeg"
+          }
+        ];
+        await EventModel.insertMany(eventsData);
+        console.log(`✅ Added ${eventsData.length} events`);
+      }
+      
+      // Seed news
+      const newsCount = await NewsModel.countDocuments();
+      if (newsCount === 0) {
+        const newsData = [
+          {
+            title: "Grave Games Event",
+            titleAr: "حدث ألعاب القبور",
+            dateRange: "October 20th - November 3rd",
+            image: "https://files.catbox.moe/qu1s79.jpeg",
+            category: "Event",
+            content: "The spooky season continues with Grave Games!",
+            contentAr: "يستمر موسم الرعب مع ألعاب القبور!",
+            htmlContent: "<h2>Grave Games Event</h2><p>Join the tournament!</p>",
+            author: "[GM]Xenon",
+            featured: true
+          },
+          {
+            title: "Halloween Creative Contest",
+            titleAr: "مسابقة الهالوين الإبداعية",
+            dateRange: "October 15th - November 1st",
+            image: "https://files.catbox.moe/44v7zb.jpeg",
+            category: "Contest",
+            content: "Show us your spooky side!",
+            contentAr: "أظهر لنا جانبك المخيف!",
+            htmlContent: "<h2>Halloween Creative Contest</h2>",
+            author: "[GM]Xenon",
+            featured: false
+          },
+          {
+            title: "Weekend Party Event",
+            titleAr: "حدث حفلة نهاية الأسبوع",
+            dateRange: "November 8th - 10th",
+            image: "https://files.catbox.moe/7e3wr1.jpeg",
+            category: "Event",
+            content: "Party all weekend with double XP!",
+            contentAr: "احتفل طوال عطلة نهاية الأسبوع!",
+            htmlContent: "<h2>Weekend Party</h2>",
+            author: "[GM]Xenon",
+            featured: false
+          },
+          {
+            title: "Sapphire Crates Available",
+            titleAr: "صناديق الياقوت متاحة",
+            dateRange: "November 1st - 30th",
+            image: "https://files.catbox.moe/bwn5u2.jpeg",
+            category: "Shop",
+            content: "New Sapphire weapon crates!",
+            contentAr: "صناديق أسلحة الياقوت الجديدة!",
+            htmlContent: "<h2>Sapphire Crates</h2>",
+            author: "[GM]Saidin",
+            featured: false
+          },
+          {
+            title: "CF Shop Updates",
+            titleAr: "تحديثات متجر CF",
+            dateRange: "October 8th",
+            image: "https://files.catbox.moe/6xm8p5.jpeg",
+            category: "Shop",
+            content: "Check out the latest additions!",
+            contentAr: "تحقق من أحدث الإضافات!",
+            htmlContent: "<h2>CF Shop Updates</h2>",
+            author: "[GM]Kanadian",
+            featured: false
+          },
+          {
+            title: "CFS Super Fans",
+            titleAr: "CFS سوبر فانز",
+            dateRange: "October 22nd - November 4th",
+            image: "https://files.catbox.moe/u3m7k9.jpeg",
+            category: "News",
+            content: "Join the Super Fans program!",
+            contentAr: "انضم إلى برنامج Super Fans!",
+            htmlContent: "<h2>CFS Super Fans</h2>",
+            author: "[GM]Xenon",
+            featured: false
+          }
+        ];
+        await NewsModel.insertMany(newsData);
+        console.log(`✅ Added ${newsData.length} news items`);
+      }
+      
+      // Seed admin
+      const adminCount = await AdminModel.countDocuments();
+      if (adminCount === 0) {
+        const bcrypt = await import('bcryptjs');
+        const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        
+        await AdminModel.create({
+          username: 'admin',
+          password: hashedPassword,
+          role: 'super_admin'
+        });
+        console.log('✅ Default admin created (username: admin)');
+        console.log(`⚠️  Password: ${defaultPassword} - CHANGE THIS!\n`);
+      }
+      
+      console.log('✅ Auto-seeding completed!\n');
+    } catch (error) {
+      console.error('❌ Auto-seeding failed:', error.message);
     }
   }
   

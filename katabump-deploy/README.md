@@ -1,115 +1,120 @@
-# Bimora Backend Deployment for Katabump.com
+# KataBump Deployment
 
-This folder contains all the files needed to deploy your backend to katabump.com.
+Simple deployment for your CrossFire Gaming Blog.
 
-## 📦 Contents
+## Quick Start
 
-- `index.js` - Main backend server file (compiled)
-- `dist/public/` - Frontend static files
-- `package.json` - Node.js dependencies list
-- `package-lock.json` - Locked dependency versions
-- `attached_assets/` - Images and static assets
+1. **Configure Environment**
 
-## 🚀 Deployment Steps
+Edit the `.env` file with your settings:
 
-### 1. Upload Files to Katabump
-
-Upload this entire folder to your katabump.com server.
-
-### 2. Install Dependencies
-
-SSH into your katabump server and run:
-
-```bash
-cd /path/to/your/app
-npm install --production
-```
-
-This will install all required packages (about 425MB).
-
-### 3. Set Environment Variables
-
-Create a `.env` file or set these environment variables on katabump:
-
-```bash
-MONGODB_URI=mongodb+srv://ahmed12ahmed12222_db_user:XQrHohCTcVjBgEbT@cluster0.oq5zwzt.mongodb.net/?retryWrites=true&w=majority
-NODE_ENV=production
+```env
 PORT=5000
-JWT_SECRET=your-super-secret-random-string-here-change-this
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://your_username:your_password@cluster.mongodb.net/?appName=YourApp
+JWT_SECRET=your-secret-key-here
+ADMIN_PASSWORD=your-admin-password
+AUTO_SEED=true
 ```
 
-**Important:** Change `JWT_SECRET` to a random secure string!
+2. **Start the Server**
 
-### 4. Start the Server
-
-#### Option A: Direct Start
 ```bash
 node index.js
 ```
 
-#### Option B: Quick Start Script
-```bash
-./start-server.sh
-```
+That's it! The server will:
+- ✅ Connect to MongoDB automatically
+- ✅ Auto-seed events and news (if AUTO_SEED=true)
+- ✅ Create default admin account
+- ✅ Start on the configured port
 
-#### Option C: PM2 (Recommended for Production)
-```bash
-# Install PM2 globally
-npm install -g pm2
+## Environment Variables
 
-# Start the app
-pm2 start index.js --name bimora-backend
+### Required
 
-# Save PM2 configuration
-pm2 save
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | Your MongoDB connection string from MongoDB Atlas |
+| `PORT` | Server port (default: 5000) |
 
-# Setup PM2 to start on server reboot
-pm2 startup
-```
+### Optional
 
-### 5. Verify Backend is Running
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JWT_SECRET` | auto-generated | Secret key for authentication |
+| `ADMIN_PASSWORD` | admin123 | Default admin password |
+| `AUTO_SEED` | false | Auto-populate events/news on first run |
+| `NODE_ENV` | production | Environment mode |
 
-Visit: `http://your-katabump-url:5000/api/news`
+## First Time Setup
 
-You should see a JSON array of news items.
+1. Make sure you have Node.js installed
+2. Copy `.env.example` to `.env` if it doesn't exist
+3. Edit `.env` with your MongoDB connection string
+4. Run: `node index.js`
 
-## 🔧 Common PM2 Commands
+## Default Admin Login
 
-```bash
-pm2 status              # Check app status
-pm2 logs bimora-backend # View logs
-pm2 restart bimora-backend # Restart app
-pm2 stop bimora-backend    # Stop app
-pm2 delete bimora-backend  # Remove app from PM2
-```
+After first run with `AUTO_SEED=true`:
 
-## 🌐 Next Steps
+- **Username**: admin
+- **Password**: (value from ADMIN_PASSWORD in .env)
 
-After your backend is running on katabump:
+⚠️ **Change the default password after first login!**
 
-1. Note your backend URL (e.g., `https://your-app.katabump.com`)
-2. Update Netlify configuration to point to this backend URL
-3. Deploy frontend to Netlify
+## Troubleshooting
 
-## ⚠️ Important Notes
+**MongoDB Connection Failed**
+- Check your MONGODB_URI is correct
+- Verify IP whitelist in MongoDB Atlas (allow 0.0.0.0/0 or your server IP)
+- Confirm database user credentials
 
-- Make sure MongoDB connection string is correct
-- Your MongoDB has been seeded with sample news and events data
-- Admin accounts created: mostafa, bavly, highway (check passwords in seed script)
-- Port 5000 must be accessible on your katabump server
+**Server Won't Start**
+- Check if port 5000 is already in use
+- Verify .env file exists and is readable
+- Check MongoDB connection string format
 
-## 🆘 Troubleshooting
+**No Events/News Showing**
+- Set `AUTO_SEED=true` in .env
+- Restart the server with `node index.js`
+- Events and news will be created automatically
 
-### Backend won't start
-- Check MongoDB connection string
-- Verify all environment variables are set
-- Check logs: `pm2 logs bimora-backend`
+## Features
 
-### Can't connect to backend
-- Check firewall rules on katabump
-- Verify port 5000 is open
-- Check server logs for errors
+### Auto-Seeding
 
-### Frontend can't reach backend
-- Update CORS settings if frontend and backend are on different domains
-- Update Netlify redirects to point to correct backend URL
+When `AUTO_SEED=true`, the server automatically creates:
+- 5 events (Grave Games, Weekend Party, Sapphire Crates, etc.)
+- 6 news items (latest CrossFire updates)
+- All with catbox.moe image URLs
+- All with Arabic translations
+- Default admin account
+
+### Image Hosting
+
+All images use catbox.moe URLs - no need to upload files manually!
+
+### Bilingual Support
+
+All events and news include both English and Arabic content.
+
+## Support
+
+For issues:
+1. Check the console output for error messages
+2. Verify all environment variables are set
+3. Test MongoDB connection separately
+4. Ensure server has internet access to reach MongoDB Atlas
+
+## Files
+
+- `index.js` - Main server file (just run this!)
+- `.env` - Your configuration (edit this)
+- `.env.example` - Configuration template
+- `package.json` - Dependencies list
+- `attached_assets/` - Static assets folder
+
+---
+
+**That's all you need! Just run `node index.js` and you're ready to go!** 🚀
