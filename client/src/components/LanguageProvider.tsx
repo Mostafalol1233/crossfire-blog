@@ -206,7 +206,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("lang", language);
-    root.setAttribute("dir", language === "ar" ? "rtl" : "ltr");
     
     // Add/remove Arabic font class for smoother font switching
     if (language === "ar") {

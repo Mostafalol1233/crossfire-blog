@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema } from "@shared/schema";
 import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, requireMostafa, comparePassword, hashPassword } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
+import { scraper } from "./scraper";
 
 // Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() });
@@ -669,6 +670,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const imageUrl = await response.text();
       
       res.json({ url: imageUrl.trim() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Scraper routes for Z8Games events and news
+  app.post("/api/scrape/events", requireAuth, async (req, res) => {
+    try {
+      const scrapedEvents = await scraper.scrapeEvents();
+      const existingEvents = await storage.getAllEvents();
+      
+      const createdEvents = [];
+      let skippedCount = 0;
+      
+      for (const scrapedEvent of scrapedEvents) {
+        const eventData = scraper.convertToInsertEvent(scrapedEvent);
+        
+        const isDuplicate = existingEvents.some(
+          existing => existing.title.toLowerCase() === eventData.title.toLowerCase()
+        );
+        
+        if (!isDuplicate) {
+          const event = await storage.createEvent(eventData);
+          createdEvents.push(event);
+        } else {
+          skippedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        count: createdEvents.length,
+        skipped: skippedCount,
+        events: createdEvents 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/scrape/news", requireAuth, async (req, res) => {
+    try {
+      const { url } = req.body;
+      let scrapedNews = [];
+      
+      if (url) {
+        const singleNews = await scraper.scrapeSpecificForum(url);
+        if (singleNews) {
+          scrapedNews.push(singleNews);
+        }
+      } else {
+        scrapedNews = await scraper.scrapeForumAnnouncements();
+      }
+      
+      const existingNews = await storage.getAllNews();
+      const createdNews = [];
+      let skippedCount = 0;
+      
+      for (const newsItem of scrapedNews) {
+        const newsData = scraper.convertToInsertNews(newsItem);
+        
+        const isDuplicate = existingNews.some(
+          existing => existing.title.toLowerCase() === newsData.title.toLowerCase()
+        );
+        
+        if (!isDuplicate) {
+          const news = await storage.createNews(newsData);
+          createdNews.push(news);
+        } else {
+          skippedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        count: createdNews.length,
+        skipped: skippedCount,
+        news: createdNews 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/scrape/preview/events", requireAuth, async (req, res) => {
+    try {
+      const scrapedEvents = await scraper.scrapeEvents();
+      res.json({ 
+        count: scrapedEvents.length, 
+        events: scrapedEvents 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/scrape/preview/news", requireAuth, async (req, res) => {
+    try {
+      const { url } = req.query;
+      let scrapedNews = [];
+      
+      if (url) {
+        const singleNews = await scraper.scrapeSpecificForum(url as string);
+        if (singleNews) {
+          scrapedNews.push(singleNews);
+        }
+      } else {
+        scrapedNews = await scraper.scrapeForumAnnouncements();
+      }
+      
+      res.json({ 
+        count: scrapedNews.length, 
+        news: scrapedNews 
+      });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
