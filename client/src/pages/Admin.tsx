@@ -92,6 +92,7 @@ export default function Admin() {
   }, [setLocation]);
 
   const isSuperAdmin = adminRole === "super_admin";
+  const isMostafa = adminUsername === "mostafa";
 
   const [postForm, setPostForm] = useState({
     title: "",
@@ -160,12 +161,12 @@ export default function Admin() {
 
   const { data: admins } = useQuery<any[]>({
     queryKey: ["/api/admins"],
-    enabled: isSuperAdmin,
+    enabled: isMostafa,
   });
 
   const { data: subscribers } = useQuery<any[]>({
     queryKey: ["/api/newsletter-subscribers"],
-    enabled: isSuperAdmin,
+    enabled: isMostafa,
   });
 
   const createPostMutation = useMutation({
@@ -510,13 +511,13 @@ export default function Admin() {
               <Languages className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Translations</span>
             </TabsTrigger>
-            {isSuperAdmin && (
+            {isMostafa && (
               <TabsTrigger value="admins" data-testid="tab-admins">
                 <Users className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Admins</span>
               </TabsTrigger>
             )}
-            {isSuperAdmin && (
+            {isMostafa && (
               <TabsTrigger value="subscribers" data-testid="tab-subscribers">
                 <Mail className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Subscribers</span>
@@ -1310,7 +1311,7 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {isSuperAdmin && (
+          {isMostafa && (
             <TabsContent value="admins" className="space-y-6" data-testid="content-admins">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Admins Management</h2>
@@ -1449,7 +1450,7 @@ export default function Admin() {
             </TabsContent>
           )}
 
-          {isSuperAdmin && (
+          {isMostafa && (
             <TabsContent value="subscribers" className="space-y-6" data-testid="content-subscribers">
               <h2 className="text-2xl font-semibold">Newsletter Subscribers</h2>
 

@@ -1,5 +1,5 @@
 import { db } from './db';
-import { posts, news, events, users } from '@shared/schema';
+import { posts, news, events, users, admins } from '@shared/schema';
 import bcrypt from 'bcryptjs';
 
 async function seed() {
@@ -10,6 +10,31 @@ async function seed() {
     username: 'admin',
     password: hashedPassword
   }).onConflictDoNothing();
+
+  console.log('Creating super admin accounts...');
+  const mostafaPassword = await bcrypt.hash('mos1382007', 10);
+  const bavlyPassword = await bcrypt.hash('bavly2025x1', 10);
+  const highwayPassword = await bcrypt.hash('highway2025', 10);
+
+  await db.insert(admins).values([
+    {
+      username: 'mostafa',
+      password: mostafaPassword,
+      role: 'super_admin'
+    },
+    {
+      username: 'bavly',
+      password: bavlyPassword,
+      role: 'super_admin'
+    },
+    {
+      username: 'highway',
+      password: highwayPassword,
+      role: 'super_admin'
+    }
+  ]).onConflictDoNothing();
+
+  console.log('✅ Super admin accounts created successfully!');
 
   await db.insert(posts).values([
     {
