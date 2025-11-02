@@ -6,13 +6,20 @@ Biomera Gaming Blog is a modern, full-stack CrossFire gaming website built with 
 
 ## Recent Changes (November 2025)
 
+### Scraping Enhancements
+- **Selective Import**: Added checkbox-based selective import in scraper preview dialog
+- **Rich HTML Content**: Scraper now extracts and stores full HTML content with embedded images and formatting
+- **Enhanced UI**: Preview dialog shows items with checkboxes, select all/deselect all functionality, and import count
+- **Improved Button Visibility**: Hero section "Read More" button now uses primary color with bold font for better clarity
+- News items now include `htmlContent` field to preserve rich formatting from scraped sources
+
 ### Event Detail Pages
 - Created dedicated EventDetail page showing full event descriptions, images, and Arabic translations
 - Made events in EventsRibbon clickable, routing to `/events/:id`
 - Added translation toggle button for users to switch between English and Arabic content
 
 ### Manual Translation System
-- Added Arabic translation fields to events (`titleAr`, `descriptionAr`) and news (`titleAr`, `contentAr`)
+- Added Arabic translation fields to events (`titleAr`, `descriptionAr`) and news (`titleAr`, `contentAr`, `htmlContent`)
 - Created Translations tab in admin dashboard to manage Arabic translations manually
 - Translation toggle available on EventDetail pages for end users
 
