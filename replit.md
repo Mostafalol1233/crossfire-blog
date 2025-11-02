@@ -2,7 +2,38 @@
 
 ## Overview
 
-Biomera Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and in-memory storage. It features a news section with CrossFire-style grid layouts, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes bilingual support (English/Arabic), responsive design, and engaging visual experiences, transforming from a general blog into a gaming-focused hub. The business vision is to provide a rich, interactive content experience for CrossFire enthusiasts, leveraging modern web technologies to deliver high performance and an intuitive user interface.
+Biomera Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and PostgreSQL. It features a news section with CrossFire-style grid layouts, clickable event detail pages, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes **manual bilingual support** (English/Arabic) where admins add translations through the dashboard and users toggle between languages, responsive design, and engaging visual experiences. The business vision is to provide a rich, interactive content experience for CrossFire enthusiasts with advanced **role-based access control** for multiple administrators and newsletter management.
+
+## Recent Changes (November 2025)
+
+### Event Detail Pages
+- Created dedicated EventDetail page showing full event descriptions, images, and Arabic translations
+- Made events in EventsRibbon clickable, routing to `/events/:id`
+- Added translation toggle button for users to switch between English and Arabic content
+
+### Manual Translation System
+- Added Arabic translation fields to events (`titleAr`, `descriptionAr`) and news (`titleAr`, `contentAr`)
+- Created Translations tab in admin dashboard to manage Arabic translations manually
+- Translation toggle available on EventDetail pages for end users
+
+### Multi-Admin Permission System
+- Implemented role-based authentication with three levels: `super_admin`, `admin`, `ticket_manager`
+- Super admin: Full control over all features including admin management and newsletter
+- Regular admin: Can edit news and tickets but cannot access admin/newsletter management
+- Ticket manager: Limited to ticket management only
+- Ticket emails hidden from non-super admin roles for privacy
+
+### Newsletter Management
+- Added newsletter subscription form in footer with email validation
+- Created newsletter_subscribers table and API endpoints
+- Newsletter subscribers tab in admin dashboard (super admin only)
+- Subscribers can be viewed and deleted by super admin
+
+### Admin Dashboard Enhancements
+- Reorganized into 7 tabs: Dashboard, Posts, Events & News, Translations, Admins, Newsletter, Tickets
+- Role-based tab visibility (Admins and Newsletter tabs only for super_admin)
+- Enhanced forms with Arabic fields and RTL support
+- Username/password login system for multiple admins (stored in admins table)
 
 ## User Preferences
 
@@ -20,17 +51,44 @@ The UI is constructed using **shadcn/ui** components built on Radix UI primitive
 
 The backend runs on **Express.js** with **Node.js** and **TypeScript**, utilizing ESM modules. It includes custom middleware for logging, JSON parsing, and error handling.
 
-Data is currently managed with an **in-memory storage implementation** (`MemStorage`) using Map data structures for core entities like users, posts, news, and mercenaries. A **Drizzle ORM** configuration exists for a future PostgreSQL migration path, with defined schemas using UUIDs and proper relationships. Authentication is **JWT-based** with configurable secrets and simple password verification for admin access, with `bcryptjs` prepared for hashing. The API is **RESTful** under the `/api` namespace, providing endpoints for gaming-specific content like news and mercenaries, with robust error handling.
+Data is managed with **PostgreSQL** using **Drizzle ORM** with defined schemas, UUIDs, and proper relationships for users, posts, news, events, mercenaries, admins, and newsletter subscribers. A **DatabaseStorage** implementation interacts with the database for all CRUD operations, while a fallback **MemStorage** implementation exists for testing. Authentication is **JWT-based** with role claims (super_admin, admin, ticket_manager) encoded in tokens. Multiple admin accounts are stored in the `admins` table with hashed passwords. The API is **RESTful** under the `/api` namespace with **role-based access control middleware** protecting sensitive endpoints.
 
 ### Data Schema
 
-Core entities include Users, Posts, Comments, Events, NewsItem, and Mercenary, defined in Drizzle schemas and storage interfaces. **Zod** schemas are used for validation, generated from Drizzle definitions.
+Core entities include:
+- **Users**: Basic user authentication
+- **Posts**: Blog articles with categories and content
+- **Comments**: User-generated comments on posts
+- **Events**: Gaming events with translations (`title`, `titleAr`, `description`, `descriptionAr`, `imageUrl`, `startDate`, `endDate`)
+- **NewsItem**: News articles with translations (`title`, `titleAr`, `content`, `contentAr`, `imageUrl`, `category`)
+- **Mercenary**: Character/mercenary showcase
+- **Admins**: Multi-admin system with roles (`id`, `username`, `password`, `role`, `createdAt`)
+- **NewsletterSubscribers**: Email subscriptions (`id`, `email`, `createdAt`)
+
+**Zod** schemas are used for validation, generated from Drizzle definitions.
 
 ### Page Structure
 
-**Public Pages** include Home (with category filtering and search), News (CrossFire-style grid with detail pages), Mercenaries (interactive character gallery), GraveGames (event info), Article (full post view), About, and Contact.
+**Public Pages** include:
+- Home (with category filtering and search)
+- News (CrossFire-style grid with detail pages and translation toggle)
+- EventDetail (individual event page with image, description, and translation toggle)
+- Mercenaries (interactive character gallery)
+- GraveGames (event info with clickable events)
+- Article (full post view)
+- About and Contact
+- Footer with newsletter subscription
 
-**Admin Pages** include Admin Login and a Dashboard for content management (create/edit/delete posts and events, image uploads) with rich text editing via ReactQuill, client-side route protection, and enhanced security layers (frontend and backend JWT verification).
+**Admin Pages** include:
+- AdminLogin (username/password authentication for multiple admins)
+- Admin Dashboard with 7 tabs:
+  1. **Dashboard**: Stats overview and image upload
+  2. **Posts**: Blog post management
+  3. **Events & News**: Side-by-side management
+  4. **Translations**: Translation status overview and manual Arabic input
+  5. **Admins**: Admin user management (super_admin only)
+  6. **Newsletter**: Subscriber management (super_admin only)
+  7. **Tickets**: Support ticket management (emails hidden for non-super admins)
 
 ### Design System Implementation
 
