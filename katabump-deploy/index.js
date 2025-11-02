@@ -214,16 +214,16 @@ var MongoDBStorage = class {
   
   initializeMercenaries() {
     const mercenaries = [
-      { id: "1", name: "Wolf", image: "/assets/merc-wolf.jpg", role: "Assault" },
-      { id: "2", name: "Vipers", image: "/assets/merc-vipers.jpg", role: "Sniper" },
-      { id: "3", name: "Sisterhood", image: "/assets/merc-sisterhood.jpg", role: "Medic" },
-      { id: "4", name: "Black Mamba", image: "/assets/merc-blackmamba.jpg", role: "Scout" },
-      { id: "5", name: "Arch Honorary", image: "/assets/merc-archhonorary.jpg", role: "Tank" },
-      { id: "6", name: "Desperado", image: "/assets/merc-desperado.jpg", role: "Engineer" },
-      { id: "7", name: "Ronin", image: "/assets/merc-ronin.jpg", role: "Samurai" },
-      { id: "8", name: "Dean", image: "/assets/merc-dean.jpg", role: "Specialist" },
-      { id: "9", name: "Thoth", image: "/assets/merc-thoth.jpg", role: "Guardian" },
-      { id: "10", name: "SFG", image: "/assets/merc-sfg.jpg", role: "Special Forces Group" }
+      { id: "1", name: "Wolf", image: "https://files.catbox.moe/6npa73.jpeg", role: "Assault" },
+      { id: "2", name: "Vipers", image: "https://files.catbox.moe/4il6hi.jpeg", role: "Sniper" },
+      { id: "3", name: "Sisterhood", image: "https://files.catbox.moe/3o58nb.jpeg", role: "Medic" },
+      { id: "4", name: "Black Mamba", image: "https://files.catbox.moe/r26ox6.jpeg", role: "Scout" },
+      { id: "5", name: "Arch Honorary", image: "https://files.catbox.moe/ctwnqz.jpeg", role: "Tank" },
+      { id: "6", name: "Desperado", image: "https://files.catbox.moe/hh7h5u.jpeg", role: "Engineer" },
+      { id: "7", name: "Ronin", image: "https://files.catbox.moe/eck3jc.jpeg", role: "Samurai" },
+      { id: "8", name: "Dean", image: "https://files.catbox.moe/t78mvu.jpeg", role: "Specialist" },
+      { id: "9", name: "Thoth", image: "https://files.catbox.moe/g4zfzn.jpeg", role: "Guardian" },
+      { id: "10", name: "SFG", image: "https://files.catbox.moe/3bba2g.jpeg", role: "Special Forces Group" }
     ];
     mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
   }
