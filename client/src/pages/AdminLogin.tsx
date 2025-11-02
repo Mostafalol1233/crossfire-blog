@@ -166,9 +166,6 @@ export default function AdminLogin() {
               >
                 {isLoading ? "Logging in..." : "Login as Super Admin"}
               </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                Default password: admin123
-              </p>
             </TabsContent>
           </Tabs>
         </CardContent>

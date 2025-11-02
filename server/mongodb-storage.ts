@@ -71,6 +71,7 @@ export interface IStorage {
   deleteEvent(id: string): Promise<boolean>;
 
   getAllNews(): Promise<NewsItem[]>;
+  getNewsById(id: string): Promise<NewsItem | undefined>;
   createNews(news: Partial<NewsItem>): Promise<NewsItem>;
   updateNews(id: string, news: Partial<NewsItem>): Promise<NewsItem | undefined>;
   deleteNews(id: string): Promise<boolean>;
@@ -221,6 +222,25 @@ export class MongoDBStorage implements IStorage {
       featured: item.featured,
       createdAt: item.createdAt,
     }));
+  }
+
+  async getNewsById(id: string): Promise<NewsItem | undefined> {
+    const item = await NewsModel.findById(id);
+    if (!item) return undefined;
+    return {
+      id: String(item._id),
+      title: item.title,
+      titleAr: item.titleAr,
+      dateRange: item.dateRange,
+      image: item.image,
+      category: item.category,
+      content: item.content,
+      contentAr: item.contentAr,
+      htmlContent: item.htmlContent,
+      author: item.author,
+      featured: item.featured,
+      createdAt: item.createdAt,
+    };
   }
 
   async createNews(news: Partial<NewsItem>): Promise<NewsItem> {

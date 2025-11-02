@@ -286,6 +286,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/news/:id", async (req, res) => {
+    try {
+      const news = await storage.getNewsById(req.params.id);
+      
+      if (!news) {
+        return res.status(404).json({ error: "News item not found" });
+      }
+
+      res.json(news);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/news", requireAuth, async (req, res) => {
     try {
       const data = insertNewsSchema.parse(req.body);

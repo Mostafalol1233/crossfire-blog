@@ -21,11 +21,10 @@ export default function NewsDetail() {
   const newsId = params.id;
   const { t } = useLanguage();
 
-  const { data: newsItems = [], isLoading } = useQuery<NewsItem[]>({
-    queryKey: ["/api/news"],
+  const { data: newsItem, isLoading } = useQuery<NewsItem>({
+    queryKey: [`/api/news/${newsId}`],
+    enabled: !!newsId,
   });
-
-  const newsItem = newsItems.find((item) => item.id === newsId);
 
   if (isLoading) {
     return (
