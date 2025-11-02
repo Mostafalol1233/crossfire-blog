@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema } from "@shared/schema";
+import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema } from "@shared/mongodb-schema";
 import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, comparePassword, hashPassword } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 import { scraper } from "./scraper";
@@ -201,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         postId: id,
         name: author,
         content,
-        parentCommentId: parentCommentId || null,
+        parentCommentId: parentCommentId || undefined,
       };
       
       const data = insertCommentSchema.parse(commentData);
