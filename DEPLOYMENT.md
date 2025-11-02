@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide will help you deploy the Biomera Gaming Blog application with:
+This guide will help you deploy the Bimora Gaming Blog application with:
 - **Frontend**: Netlify (static files)
 - **Backend**: katabump.com (Node.js API)
 - **Database**: MongoDB Atlas

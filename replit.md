@@ -1,8 +1,8 @@
-# Biomera Gaming Blog
+# Bimora Gaming Blog
 
 ## Overview
 
-Biomera Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and PostgreSQL. It features a news section with CrossFire-style grid layouts, clickable event detail pages, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes **manual bilingual support** (English/Arabic) where admins add translations through the dashboard and users toggle between languages, responsive design, and engaging visual experiences. The business vision is to provide a rich, interactive content experience for CrossFire enthusiasts with advanced **role-based access control** for multiple administrators and newsletter management.
+Bimora Gaming Blog is a modern, full-stack CrossFire gaming website built with React, TypeScript, Express, and PostgreSQL. It features a news section with CrossFire-style grid layouts, clickable event detail pages, a mercenaries/characters showcase with interactive hover effects, and AI-generated CrossFire-themed imagery. The platform emphasizes **manual bilingual support** (English/Arabic) where admins add translations through the dashboard and users toggle between languages, responsive design, and engaging visual experiences. The business vision is to provide a rich, interactive content experience for CrossFire enthusiasts with advanced **role-based access control** for multiple administrators and newsletter management.
 
 ## Recent Changes (November 2025)
 
