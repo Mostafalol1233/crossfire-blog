@@ -1,3 +1,4 @@
+
 // Auto-install missing packages before anything else
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -24,17 +25,16 @@ async function ensurePackages() {
 await ensurePackages();
 
 // server/index.ts
-import express2 from "express";
-import path3 from "path";
+import express from "express";
+import path from "path";
 import { fileURLToPath } from "url";
-
-// server/routes.ts
 import { createServer } from "http";
 import multer from "multer";
 
 // shared/mongodb-schema.ts
 import mongoose, { Schema } from "mongoose";
 import { z } from "zod";
+
 var UserSchema = new Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true }
@@ -184,52 +184,34 @@ var insertNewsletterSubscriberSchema = z.object({
   email: z.string().email()
 });
 
-// server/neon.ts - PostgreSQL connection
-import { neon } from '@neondatabase/serverless';
-
-var sql = null;
-var isConnected = false;
-
-async function connectNeon() {
-  if (isConnected && sql) {
-    console.log("✅ Neon PostgreSQL is already connected");
-    return sql;
-  }
-  
-  try {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      throw new Error("DATABASE_URL environment variable is not defined");
-    }
-    
-    sql = neon(databaseUrl);
-    isConnected = true;
-    console.log("✅ Neon PostgreSQL connected successfully");
-    return sql;
-  } catch (error) {
-    console.error("❌ Neon connection error:", error);
-    throw error;
-  }
-}
-
-// server/neon-storage.ts
+// MongoDB Storage
 var MongoDBStorage = class {
   mercenaries;
   initialized = false;
-  sql;
   
   constructor() {
-    this.mercenaries = /* @__PURE__ */ new Map();
+    this.mercenaries = new Map();
     this.initializeMercenaries();
     this.connect();
   }
   
   async connect() {
     if (!this.initialized) {
-      this.sql = await connectNeon();
-      this.initialized = true;
+      try {
+        const mongoUri = process.env.MONGODB_URI;
+        if (!mongoUri) {
+          throw new Error("MONGODB_URI environment variable is not defined");
+        }
+        await mongoose.connect(mongoUri);
+        console.log("MongoDB connected successfully");
+        this.initialized = true;
+      } catch (error) {
+        console.error("MongoDB connection error:", error);
+        throw error;
+      }
     }
   }
+  
   initializeMercenaries() {
     const mercenaries = [
       { id: "1", name: "Wolf", image: "/assets/merc-wolf.jpg", role: "Assault" },
@@ -245,13 +227,14 @@ var MongoDBStorage = class {
     ];
     mercenaries.forEach((merc) => this.mercenaries.set(merc.id, merc));
   }
+  
   async getUser(id) {
     const user = await UserModel.findById(id);
-    return user || void 0;
+    return user || undefined;
   }
   async getUserByUsername(username) {
     const user = await UserModel.findOne({ username });
-    return user || void 0;
+    return user || undefined;
   }
   async createUser(user) {
     const newUser = await UserModel.create(user);
@@ -263,7 +246,7 @@ var MongoDBStorage = class {
   }
   async getPostById(id) {
     const post = await PostModel.findById(id);
-    return post || void 0;
+    return post || undefined;
   }
   async createPost(post) {
     const newPost = await PostModel.create(post);
@@ -271,7 +254,7 @@ var MongoDBStorage = class {
   }
   async updatePost(id, post) {
     const updated = await PostModel.findByIdAndUpdate(id, post, { new: true });
-    return updated || void 0;
+    return updated || undefined;
   }
   async deletePost(id) {
     const result = await PostModel.findByIdAndDelete(id);
@@ -336,7 +319,7 @@ var MongoDBStorage = class {
   }
   async updateNews(id, news) {
     const updated = await NewsModel.findByIdAndUpdate(id, news, { new: true });
-    if (!updated) return void 0;
+    if (!updated) return undefined;
     return {
       id: String(updated._id),
       title: updated.title,
@@ -365,7 +348,7 @@ var MongoDBStorage = class {
   }
   async getTicketById(id) {
     const ticket = await TicketModel.findById(id);
-    return ticket || void 0;
+    return ticket || undefined;
   }
   async getTicketsByEmail(email) {
     const tickets = await TicketModel.find({ userEmail: email }).sort({ createdAt: -1 });
@@ -378,10 +361,10 @@ var MongoDBStorage = class {
   async updateTicket(id, ticket) {
     const updated = await TicketModel.findByIdAndUpdate(
       id,
-      { ...ticket, updatedAt: /* @__PURE__ */ new Date() },
+      { ...ticket, updatedAt: new Date() },
       { new: true }
     );
-    return updated || void 0;
+    return updated || undefined;
   }
   async deleteTicket(id) {
     const result = await TicketModel.findByIdAndDelete(id);
@@ -401,11 +384,11 @@ var MongoDBStorage = class {
   }
   async getAdminById(id) {
     const admin = await AdminModel.findById(id);
-    return admin || void 0;
+    return admin || undefined;
   }
   async getAdminByUsername(username) {
     const admin = await AdminModel.findOne({ username });
-    return admin || void 0;
+    return admin || undefined;
   }
   async createAdmin(admin) {
     const newAdmin = await AdminModel.create(admin);
@@ -413,7 +396,7 @@ var MongoDBStorage = class {
   }
   async updateAdmin(id, admin) {
     const updated = await AdminModel.findByIdAndUpdate(id, admin, { new: true });
-    return updated || void 0;
+    return updated || undefined;
   }
   async deleteAdmin(id) {
     const result = await AdminModel.findByIdAndDelete(id);
@@ -421,11 +404,11 @@ var MongoDBStorage = class {
   }
   async getEventById(id) {
     const event = await EventModel.findById(id);
-    return event || void 0;
+    return event || undefined;
   }
   async updateEvent(id, event) {
     const updated = await EventModel.findByIdAndUpdate(id, event, { new: true });
-    return updated || void 0;
+    return updated || undefined;
   }
   async getAllNewsletterSubscribers() {
     const subscribers = await NewsletterSubscriberModel.find().sort({ createdAt: -1 });
@@ -433,7 +416,7 @@ var MongoDBStorage = class {
   }
   async getNewsletterSubscriberByEmail(email) {
     const subscriber = await NewsletterSubscriberModel.findOne({ email });
-    return subscriber || void 0;
+    return subscriber || undefined;
   }
   async createNewsletterSubscriber(subscriber) {
     const newSubscriber = await NewsletterSubscriberModel.create(subscriber);
@@ -445,14 +428,15 @@ var MongoDBStorage = class {
   }
 };
 
-// server/storage.ts
 var storage = new MongoDBStorage();
 
-// server/utils/auth.ts
+// Auth utilities
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+
 var JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 var ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
 async function hashPassword(password) {
   return bcrypt.hash(password, 10);
 }
@@ -474,15 +458,11 @@ async function verifyAdminPassword(password) {
 }
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
-  console.log("[AUTH] Authorization header:", authHeader ? "present" : "missing");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("[AUTH] No Bearer token found");
     return res.status(401).json({ error: "Unauthorized" });
   }
   const token = authHeader.substring(7);
-  console.log("[AUTH] Token extracted, length:", token.length);
   const payload = verifyToken(token);
-  console.log("[AUTH] Token verification result:", payload ? "valid" : "invalid");
   if (!payload) {
     return res.status(401).json({ error: "Invalid token" });
   }
@@ -497,7 +477,7 @@ function requireSuperAdmin(req, res, next) {
   next();
 }
 
-// server/utils/helpers.ts
+// Helper functions
 function calculateReadingTime(content) {
   const wordsPerMinute = 200;
   const words = content.trim().split(/\s+/).length;
@@ -512,11 +492,11 @@ function generateSummary(content, maxLength = 200) {
   return plainText.substring(0, maxLength).trim() + "...";
 }
 function formatDate(date) {
-  const now = /* @__PURE__ */ new Date();
+  const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 6e4);
-  const diffHours = Math.floor(diffMs / 36e5);
-  const diffDays = Math.floor(diffMs / 864e5);
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
   if (diffMins < 60) {
     return `${diffMins} ${diffMins === 1 ? "minute" : "minutes"} ago`;
   } else if (diffHours < 24) {
@@ -532,11 +512,13 @@ function formatDate(date) {
   }
 }
 
-// server/scraper.ts
+// Scraper
 import * as cheerio from "cheerio";
+
 var Z8GamesScraper = class {
   EVENTS_URL = "https://crossfire.z8games.com/events.html";
   FORUM_BASE_URL = "https://forum.z8games.com";
+  
   extractImageUrl($el, baseUrl = "https://z8games.akamaized.net") {
     let imageUrl = "";
     const $img = $el.find("img").first();
@@ -585,9 +567,11 @@ var Z8GamesScraper = class {
     }
     return imageUrl;
   }
+  
   fixHtmlContentUrls(htmlContent, baseUrl = "https://forum.z8games.com") {
     return htmlContent.replace(/src="(\/[^"]+)"/g, `src="${baseUrl}$1"`).replace(/src='(\/[^']+)'/g, `src='${baseUrl}$1'`).replace(/data-src="(\/[^"]+)"/g, `data-src="${baseUrl}$1"`).replace(/data-src='(\/[^']+)'/g, `data-src='${baseUrl}$1'`).replace(/data-original="(\/[^"]+)"/g, `data-original="${baseUrl}$1"`).replace(/data-original='(\/[^']+)'/g, `data-original='${baseUrl}$1'`);
   }
+  
   async scrapeEvents() {
     try {
       const response = await fetch(this.EVENTS_URL);
@@ -618,6 +602,7 @@ var Z8GamesScraper = class {
       return [];
     }
   }
+  
   async scrapeForumAnnouncements(forumUrl) {
     try {
       const url = forumUrl || `${this.FORUM_BASE_URL}/categories/crossfire-announcements`;
@@ -638,7 +623,7 @@ var Z8GamesScraper = class {
         if (title && title.length > 5) {
           newsItems.push({
             title,
-            dateRange: dateText || (/* @__PURE__ */ new Date()).toLocaleDateString(),
+            dateRange: dateText || (new Date()).toLocaleDateString(),
             image: imageUrl,
             category: "Announcements",
             content: content || title,
@@ -655,6 +640,7 @@ var Z8GamesScraper = class {
       return [];
     }
   }
+  
   async scrapeSpecificForum(discussionUrl) {
     try {
       const response = await fetch(discussionUrl);
@@ -671,7 +657,7 @@ var Z8GamesScraper = class {
       if (!title) return null;
       return {
         title,
-        dateRange: dateText || (/* @__PURE__ */ new Date()).toLocaleDateString(),
+        dateRange: dateText || (new Date()).toLocaleDateString(),
         image: imageUrl,
         category: "News",
         content: content || title,
@@ -683,6 +669,7 @@ var Z8GamesScraper = class {
       return null;
     }
   }
+  
   convertToInsertEvent(scraped) {
     const mappedType = scraped.type === "ongoing" ? "trending" : scraped.type;
     return {
@@ -695,6 +682,7 @@ var Z8GamesScraper = class {
       image: scraped.image
     };
   }
+  
   convertToInsertNews(scraped) {
     return {
       title: scraped.title,
@@ -710,12 +698,13 @@ var Z8GamesScraper = class {
     };
   }
 };
-var scraper = new Z8GamesScraper();
 
-// server/routes.ts
+var scraper = new Z8GamesScraper();
 var upload = multer({ storage: multer.memoryStorage() });
-async function registerRoutes(app2) {
-  app2.post("/api/auth/login", async (req, res) => {
+
+// Routes
+async function registerRoutes(app) {
+  app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
       if (username && password) {
@@ -754,7 +743,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/posts", async (req, res) => {
+  
+  app.get("/api/posts", async (req, res) => {
     try {
       const { category, search, featured } = req.query;
       let posts = await storage.getAllPosts();
@@ -781,7 +771,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/posts/:id", async (req, res) => {
+  
+  app.get("/api/posts/:id", async (req, res) => {
     try {
       const post = await storage.getPostById(req.params.id);
       if (!post) {
@@ -797,7 +788,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/posts", requireAuth, async (req, res) => {
+  
+  app.post("/api/posts", requireAuth, async (req, res) => {
     try {
       const data = insertPostSchema.parse(req.body);
       const readingTime = data.readingTime || calculateReadingTime(data.content);
@@ -812,7 +804,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.patch("/api/posts/:id", requireAuth, async (req, res) => {
+  
+  app.patch("/api/posts/:id", requireAuth, async (req, res) => {
     try {
       const updates = req.body;
       if (updates.content && !updates.readingTime) {
@@ -830,7 +823,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/posts/:id", requireAuth, async (req, res) => {
+  
+  app.delete("/api/posts/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deletePost(req.params.id);
       if (!deleted) {
@@ -841,7 +835,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/posts/:id/comments", async (req, res) => {
+  
+  app.get("/api/posts/:id/comments", async (req, res) => {
     try {
       const comments = await storage.getCommentsByPostId(req.params.id);
       const formattedComments = comments.map((comment) => ({
@@ -853,7 +848,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/posts/:id/comments", async (req, res) => {
+  
+  app.post("/api/posts/:id/comments", async (req, res) => {
     try {
       const { id } = req.params;
       const { author, content, parentCommentId } = req.body;
@@ -861,7 +857,7 @@ async function registerRoutes(app2) {
         postId: id,
         name: author,
         content,
-        parentCommentId: parentCommentId || void 0
+        parentCommentId: parentCommentId || undefined
       };
       const data = insertCommentSchema.parse(commentData);
       const comment = await storage.createComment(data);
@@ -874,7 +870,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.get("/api/events", async (req, res) => {
+  
+  app.get("/api/events", async (req, res) => {
     try {
       const events = await storage.getAllEvents();
       res.json(events);
@@ -882,7 +879,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/events", requireAuth, async (req, res) => {
+  
+  app.post("/api/events", requireAuth, async (req, res) => {
     try {
       const data = insertEventSchema.parse(req.body);
       const event = await storage.createEvent(data);
@@ -891,7 +889,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/events/:id", requireAuth, async (req, res) => {
+  
+  app.delete("/api/events/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteEvent(req.params.id);
       if (!deleted) {
@@ -902,7 +901,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/stats", requireAuth, async (req, res) => {
+  
+  app.get("/api/stats", requireAuth, async (req, res) => {
     try {
       const posts = await storage.getAllPosts();
       const allComments = await Promise.all(
@@ -923,7 +923,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/news", async (req, res) => {
+  
+  app.get("/api/news", async (req, res) => {
     try {
       const news = await storage.getAllNews();
       res.json(news);
@@ -931,7 +932,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/news", requireAuth, async (req, res) => {
+  
+  app.post("/api/news", requireAuth, async (req, res) => {
     try {
       const data = insertNewsSchema.parse(req.body);
       const news = await storage.createNews(data);
@@ -940,7 +942,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.patch("/api/news/:id", requireAuth, async (req, res) => {
+  
+  app.patch("/api/news/:id", requireAuth, async (req, res) => {
     try {
       const updates = req.body;
       const news = await storage.updateNews(req.params.id, updates);
@@ -952,7 +955,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/news/:id", requireAuth, async (req, res) => {
+  
+  app.delete("/api/news/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteNews(req.params.id);
       if (!deleted) {
@@ -963,7 +967,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/mercenaries", async (req, res) => {
+  
+  app.get("/api/mercenaries", async (req, res) => {
     try {
       const mercenaries = await storage.getAllMercenaries();
       res.json(mercenaries);
@@ -971,7 +976,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/tickets", requireAuth, async (req, res) => {
+  
+  app.get("/api/tickets", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       const tickets = await storage.getAllTickets();
@@ -991,7 +997,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/tickets/my/:email", async (req, res) => {
+  
+  app.get("/api/tickets/my/:email", async (req, res) => {
     try {
       const { email } = req.params;
       const tickets = await storage.getTicketsByEmail(email);
@@ -1005,7 +1012,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/tickets/:id", async (req, res) => {
+  
+  app.get("/api/tickets/:id", async (req, res) => {
     try {
       const ticket = await storage.getTicketById(req.params.id);
       if (!ticket) {
@@ -1021,7 +1029,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/tickets", async (req, res) => {
+  
+  app.post("/api/tickets", async (req, res) => {
     try {
       const data = insertTicketSchema.parse(req.body);
       const ticket = await storage.createTicket(data);
@@ -1035,7 +1044,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.patch("/api/tickets/:id", requireAuth, async (req, res) => {
+  
+  app.patch("/api/tickets/:id", requireAuth, async (req, res) => {
     try {
       const updates = req.body;
       const ticket = await storage.updateTicket(req.params.id, updates);
@@ -1052,7 +1062,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/tickets/:id", requireAuth, async (req, res) => {
+  
+  app.delete("/api/tickets/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteTicket(req.params.id);
       if (!deleted) {
@@ -1063,7 +1074,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/tickets/:id/replies", async (req, res) => {
+  
+  app.get("/api/tickets/:id/replies", async (req, res) => {
     try {
       const replies = await storage.getTicketReplies(req.params.id);
       const formattedReplies = replies.map((reply) => ({
@@ -1075,7 +1087,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/tickets/:id/replies", async (req, res) => {
+  
+  app.post("/api/tickets/:id/replies", async (req, res) => {
     try {
       const { id } = req.params;
       const { authorName, content, isAdmin } = req.body;
@@ -1096,7 +1109,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.get("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.get("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const admins = await storage.getAllAdmins();
       const sanitizedAdmins = admins.map(({ password, ...admin }) => admin);
@@ -1105,7 +1119,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.post("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const { username, password, role } = req.body;
       if (!username || !password) {
@@ -1128,14 +1143,15 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.patch("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.patch("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const updates = {};
-      if (req.body.username !== void 0) updates.username = req.body.username;
-      if (req.body.password !== void 0) {
+      if (req.body.username !== undefined) updates.username = req.body.username;
+      if (req.body.password !== undefined) {
         updates.password = await hashPassword(req.body.password);
       }
-      if (req.body.role !== void 0) updates.role = req.body.role;
+      if (req.body.role !== undefined) updates.role = req.body.role;
       const admin = await storage.updateAdmin(req.params.id, updates);
       if (!admin) {
         return res.status(404).json({ error: "Admin not found" });
@@ -1146,7 +1162,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.delete("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const deleted = await storage.deleteAdmin(req.params.id);
       if (!deleted) {
@@ -1157,7 +1174,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/events/:id", async (req, res) => {
+  
+  app.get("/api/events/:id", async (req, res) => {
     try {
       const event = await storage.getEventById(req.params.id);
       if (!event) {
@@ -1168,7 +1186,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.patch("/api/events/:id", requireAuth, async (req, res) => {
+  
+  app.patch("/api/events/:id", requireAuth, async (req, res) => {
     try {
       const updates = req.body;
       const event = await storage.updateEvent(req.params.id, updates);
@@ -1180,7 +1199,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.get("/api/newsletter-subscribers", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.get("/api/newsletter-subscribers", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const subscribers = await storage.getAllNewsletterSubscribers();
       res.json(subscribers);
@@ -1188,7 +1208,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/newsletter-subscribe", async (req, res) => {
+  
+  app.post("/api/newsletter-subscribe", async (req, res) => {
     try {
       const { email } = req.body;
       if (!email) {
@@ -1205,7 +1226,8 @@ async function registerRoutes(app2) {
       res.status(400).json({ error: error.message });
     }
   });
-  app2.delete("/api/newsletter-subscribers/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+  
+  app.delete("/api/newsletter-subscribers/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const deleted = await storage.deleteNewsletterSubscriber(req.params.id);
       if (!deleted) {
@@ -1216,7 +1238,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/upload-image", requireAuth, upload.single("image"), async (req, res) => {
+  
+  app.post("/api/upload-image", requireAuth, upload.single("image"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
@@ -1238,7 +1261,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/scrape/events", requireAuth, async (req, res) => {
+  
+  app.post("/api/scrape/events", requireAuth, async (req, res) => {
     try {
       const { selectedItems } = req.body;
       const scrapedEvents = selectedItems || await scraper.scrapeEvents();
@@ -1267,7 +1291,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.post("/api/scrape/news", requireAuth, async (req, res) => {
+  
+  app.post("/api/scrape/news", requireAuth, async (req, res) => {
     try {
       const { url, selectedItems } = req.body;
       let scrapedNews = [];
@@ -1306,7 +1331,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/scrape/preview/events", requireAuth, async (req, res) => {
+  
+  app.get("/api/scrape/preview/events", requireAuth, async (req, res) => {
     try {
       const scrapedEvents = await scraper.scrapeEvents();
       res.json({
@@ -1317,7 +1343,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  app2.get("/api/scrape/preview/news", requireAuth, async (req, res) => {
+  
+  app.get("/api/scrape/preview/news", requireAuth, async (req, res) => {
     try {
       const { url } = req.query;
       let scrapedNews = [];
@@ -1337,170 +1364,52 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: error.message });
     }
   });
-  const httpServer = createServer(app2);
+  
+  const httpServer = createServer(app);
   return httpServer;
 }
 
-// server/vite.ts
-import express from "express";
-import fs from "fs";
-import path2 from "path";
-import { createServer as createViteServer, createLogger } from "vite";
+// Main application
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-// vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-var vite_config_default = defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
-      await import("@replit/vite-plugin-cartographer").then(
-        (m) => m.cartographer()
-      ),
-      await import("@replit/vite-plugin-dev-banner").then(
-        (m) => m.devBanner()
-      )
-    ] : []
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets")
-    }
-  },
-  root: path.resolve(import.meta.dirname, "client"),
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
-    emptyOutDir: true
-  },
-  server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"]
-    }
-  }
-});
-
-// server/vite.ts
-import { nanoid } from "nanoid";
-var viteLogger = createLogger();
-function log(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+function log(message) {
+  const formattedTime = (new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
     hour12: true
   });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-async function setupVite(app2, server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true
-  };
-  const vite = await createViteServer({
-    ...vite_config_default,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      }
-    },
-    server: serverOptions,
-    appType: "custom"
-  });
-  app2.use(vite.middlewares);
-  app2.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
-    try {
-      const clientTemplate = path2.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html"
-      );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
-      );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
-    } catch (e) {
-      vite.ssrFixStacktrace(e);
-      next(e);
-    }
-  });
-}
-function serveStatic(app2) {
-  const distPath = path2.resolve(import.meta.dirname, "public");
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
-    );
-  }
-  app2.use(express.static(distPath));
-  app2.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
-  });
+  console.log(`${formattedTime} [express] ${message}`);
 }
 
-// server/index.ts
-var app = express2();
-app.use(express2.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express2.urlencoded({ extended: false }));
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path4 = req.path;
-  let capturedJsonResponse = void 0;
-  const originalResJson = res.json;
-  res.json = function(bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path4.startsWith("/api")) {
-      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "\u2026";
-      }
-      log(logLine);
-    }
-  });
-  next();
-});
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Serve static assets
   const currentFile = fileURLToPath(import.meta.url);
-  const currentDir = path3.dirname(currentFile);
-  const assetsPath = path3.resolve(currentDir, "..", "attached_assets");
-  app.use("/assets", express2.static(assetsPath));
+  const currentDir = path.dirname(currentFile);
+  const assetsPath = path.resolve(currentDir, "attached_assets");
+  app.use("/assets", express.static(assetsPath));
+  
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
     throw err;
   });
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  
+  // NOTE: For KataBump production deployment
+  // You need to build the frontend separately and place the static files
+  // in a 'public' folder, then uncomment the following lines:
+  
+  // const publicPath = path.resolve(currentDir, "public");
+  // app.use(express.static(publicPath));
+  // app.use("*", (_req, res) => {
+  //   res.sendFile(path.resolve(publicPath, "index.html"));
+  // });
+  
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen({
     port,
