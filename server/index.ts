@@ -3,6 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { validateEnv } from "./validate-env";
+
+validateEnv();
 
 const app = express();
 
