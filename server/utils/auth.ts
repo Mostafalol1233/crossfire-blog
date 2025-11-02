@@ -75,13 +75,3 @@ export function requireAdminOrTicketManager(req: Request, res: Response, next: N
   
   next();
 }
-
-export function requireMostafa(req: Request, res: Response, next: NextFunction) {
-  const user = (req as any).user;
-  
-  if (!user || user.username !== 'mostafa') {
-    return res.status(403).json({ error: "Forbidden: Access restricted to Mostafa only" });
-  }
-  
-  next();
-}

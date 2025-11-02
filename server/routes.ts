@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema } from "@shared/schema";
-import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, requireMostafa, comparePassword, hashPassword } from "./utils/auth";
+import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, comparePassword, hashPassword } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 import { scraper } from "./scraper";
 
@@ -489,8 +489,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin management routes (restricted to Mostafa only)
-  app.get("/api/admins", requireAuth, requireMostafa, async (req, res) => {
+  // Admin management routes (restricted to super admins only)
+  app.get("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const admins = await storage.getAllAdmins();
       const sanitizedAdmins = admins.map(({ password, ...admin }) => admin);
@@ -500,7 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admins", requireAuth, requireMostafa, async (req, res) => {
+  app.post("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const { username, password, role } = req.body;
       
@@ -529,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/admins/:id", requireAuth, requireMostafa, async (req, res) => {
+  app.patch("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const updates: any = {};
       
@@ -552,7 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admins/:id", requireAuth, requireMostafa, async (req, res) => {
+  app.delete("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const deleted = await storage.deleteAdmin(req.params.id);
       
@@ -596,8 +596,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Newsletter subscriber routes (restricted to Mostafa only)
-  app.get("/api/newsletter-subscribers", requireAuth, requireMostafa, async (req, res) => {
+  // Newsletter subscriber routes (restricted to super admins only)
+  app.get("/api/newsletter-subscribers", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const subscribers = await storage.getAllNewsletterSubscribers();
       res.json(subscribers);
@@ -628,7 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/newsletter-subscribers/:id", requireAuth, requireMostafa, async (req, res) => {
+  app.delete("/api/newsletter-subscribers/:id", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       const deleted = await storage.deleteNewsletterSubscriber(req.params.id);
       

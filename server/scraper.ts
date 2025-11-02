@@ -23,6 +23,89 @@ export class Z8GamesScraper {
   private readonly EVENTS_URL = 'https://crossfire.z8games.com/events.html';
   private readonly FORUM_BASE_URL = 'https://forum.z8games.com';
 
+  private extractImageUrl($el: any, baseUrl: string = 'https://z8games.akamaized.net'): string {
+    let imageUrl = '';
+    
+    // First, try to find an img tag
+    const $img = $el.find('img').first();
+    
+    if ($img.length > 0) {
+      imageUrl = $img.attr('src') || 
+                 $img.attr('data-src') || 
+                 $img.attr('data-original') || 
+                 $img.attr('srcset')?.split(',')[0]?.trim()?.split(' ')[0] || '';
+      
+      if (!imageUrl) {
+        const imgStyle = $img.attr('style') || '';
+        const bgMatch = imgStyle.match(/background-image:\s*url\(['"]?([^'"]+)['"]?\)/i);
+        if (bgMatch) {
+          imageUrl = bgMatch[1];
+        }
+      }
+    }
+    
+    // If no image found in img tag, check the element itself for background-image
+    if (!imageUrl) {
+      const elementStyle = $el.attr('style') || '';
+      const bgMatch = elementStyle.match(/background-image:\s*url\(['"]?([^'"]+)['"]?\)/i);
+      if (bgMatch) {
+        imageUrl = bgMatch[1];
+      }
+    }
+    
+    // Check descendant elements for background-image in their style
+    if (!imageUrl) {
+      const $bgElement = $el.find('[style*="background-image"]').first();
+      if ($bgElement.length > 0) {
+        const bgStyle = $bgElement.attr('style') || '';
+        const bgMatch = bgStyle.match(/background-image:\s*url\(['"]?([^'"]+)['"]?\)/i);
+        if (bgMatch) {
+          imageUrl = bgMatch[1];
+        }
+      }
+    }
+    
+    // Also check for data-background attribute (common in lazy loading)
+    if (!imageUrl) {
+      imageUrl = $el.attr('data-background') || 
+                 $el.attr('data-bg') || 
+                 $el.attr('data-image') || '';
+      
+      // Check descendants for data-background attributes
+      if (!imageUrl) {
+        const $dataEl = $el.find('[data-background], [data-bg], [data-image]').first();
+        if ($dataEl.length > 0) {
+          imageUrl = $dataEl.attr('data-background') || 
+                     $dataEl.attr('data-bg') || 
+                     $dataEl.attr('data-image') || '';
+        }
+      }
+    }
+    
+    if (!imageUrl) return '';
+    
+    // Normalize the URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    if (imageUrl.startsWith('/')) {
+      return `${baseUrl}${imageUrl}`;
+    }
+    
+    return imageUrl;
+  }
+
+  private fixHtmlContentUrls(htmlContent: string, baseUrl: string = 'https://forum.z8games.com'): string {
+    return htmlContent
+      .replace(/src="(\/[^"]+)"/g, `src="${baseUrl}$1"`)
+      .replace(/src='(\/[^']+)'/g, `src='${baseUrl}$1'`)
+      .replace(/data-src="(\/[^"]+)"/g, `data-src="${baseUrl}$1"`)
+      .replace(/data-src='(\/[^']+)'/g, `data-src='${baseUrl}$1'`)
+      .replace(/data-original="(\/[^"]+)"/g, `data-original="${baseUrl}$1"`)
+      .replace(/data-original='(\/[^']+)'/g, `data-original='${baseUrl}$1'`);
+  }
+
   async scrapeEvents(): Promise<ScrapedEvent[]> {
     try {
       const response = await fetch(this.EVENTS_URL);
@@ -37,7 +120,7 @@ export class Z8GamesScraper {
         const title = $el.find('h3, h2, .event-title, [class*="title"]').first().text().trim();
         const description = $el.find('p, .event-description, [class*="description"]').first().text().trim();
         const dateText = $el.find('.event-date, [class*="date"], h4').first().text().trim();
-        const imageUrl = $el.find('img').first().attr('src') || '';
+        const imageUrl = this.extractImageUrl($el);
         
         if (title && title.length > 3) {
           events.push({
@@ -45,7 +128,7 @@ export class Z8GamesScraper {
             description: description || title,
             date: dateText || 'Ongoing',
             type: dateText.toLowerCase().includes('ongoing') ? 'ongoing' : 'upcoming',
-            image: imageUrl.startsWith('http') ? imageUrl : `https://z8games.akamaized.net${imageUrl}`
+            image: imageUrl
           });
         }
       });
@@ -77,25 +160,17 @@ export class Z8GamesScraper {
         
         // Extract HTML content with images
         let htmlContent = contentElement.html() || '';
-        
-        // Fix relative image URLs in HTML content
-        htmlContent = htmlContent.replace(
-          /src="(\/[^"]+)"/g, 
-          'src="https://z8games.akamaized.net$1"'
-        ).replace(
-          /src='(\/[^']+)'/g, 
-          "src='https://z8games.akamaized.net$1'"
-        );
+        htmlContent = this.fixHtmlContentUrls(htmlContent);
         
         const author = $el.find('.author, [class*="Author"], [class*="GM"]').first().text().trim() || 'GM Xenon';
         const dateText = $el.find('time, .date, [class*="Date"]').first().text().trim();
-        const imageUrl = $el.find('img').first().attr('src') || '';
+        const imageUrl = this.extractImageUrl($el, this.FORUM_BASE_URL);
         
         if (title && title.length > 5) {
           newsItems.push({
             title,
             dateRange: dateText || new Date().toLocaleDateString(),
-            image: imageUrl.startsWith('http') ? imageUrl : imageUrl ? `https://z8games.akamaized.net${imageUrl}` : '',
+            image: imageUrl,
             category: 'Announcements',
             content: content || title,
             htmlContent: htmlContent,
@@ -125,26 +200,18 @@ export class Z8GamesScraper {
       
       // Extract HTML content with images
       let htmlContent = contentElement.html() || '';
-      
-      // Fix relative image URLs in HTML content
-      htmlContent = htmlContent.replace(
-        /src="(\/[^"]+)"/g, 
-        'src="https://z8games.akamaized.net$1"'
-      ).replace(
-        /src='(\/[^']+)'/g, 
-        "src='https://z8games.akamaized.net$1'"
-      );
+      htmlContent = this.fixHtmlContentUrls(htmlContent);
       
       const author = $('.author, [class*="Author"]').first().text().trim() || 'GM Xenon';
       const dateText = $('time').first().text().trim();
-      const imageUrl = contentElement.find('img').first().attr('src') || '';
+      const imageUrl = this.extractImageUrl(contentElement, this.FORUM_BASE_URL);
       
       if (!title) return null;
       
       return {
         title,
         dateRange: dateText || new Date().toLocaleDateString(),
-        image: imageUrl.startsWith('http') ? imageUrl : imageUrl ? `https://z8games.akamaized.net${imageUrl}` : '',
+        image: imageUrl,
         category: 'News',
         content: content || title,
         htmlContent: htmlContent,
