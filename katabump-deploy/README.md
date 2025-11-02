@@ -4,7 +4,8 @@ This folder contains all the files needed to deploy your backend to katabump.com
 
 ## 📦 Contents
 
-- `dist/` - Compiled backend server and frontend static files
+- `index.js` - Main backend server file (compiled)
+- `dist/public/` - Frontend static files
 - `package.json` - Node.js dependencies list
 - `package-lock.json` - Locked dependency versions
 - `attached_assets/` - Images and static assets
@@ -43,16 +44,21 @@ JWT_SECRET=your-super-secret-random-string-here-change-this
 
 #### Option A: Direct Start
 ```bash
-node dist/index.js
+node index.js
 ```
 
-#### Option B: PM2 (Recommended for Production)
+#### Option B: Quick Start Script
+```bash
+./start-server.sh
+```
+
+#### Option C: PM2 (Recommended for Production)
 ```bash
 # Install PM2 globally
 npm install -g pm2
 
 # Start the app
-pm2 start dist/index.js --name bimora-backend
+pm2 start index.js --name bimora-backend
 
 # Save PM2 configuration
 pm2 save

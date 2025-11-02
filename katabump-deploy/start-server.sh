@@ -26,4 +26,4 @@ fi
 
 # Start the server
 echo "🎯 Starting server with Node.js..."
-node dist/index.js
+node index.js
