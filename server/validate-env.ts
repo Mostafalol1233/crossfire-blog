@@ -5,7 +5,6 @@
 
 const requiredEnvVars = [
   'MONGODB_URI',
-  'JWT_SECRET',
   'PORT',
 ] as const;
 
@@ -27,7 +26,9 @@ export function validateEnv(): void {
   }
 
   // Check if using default values for sensitive variables
-  if (process.env.JWT_SECRET === 'your-secret-key-change-in-production') {
+  if (!process.env.JWT_SECRET) {
+    warnings.push('JWT_SECRET is not set. Using default value.');
+  } else if (process.env.JWT_SECRET === 'your-secret-key-change-in-production') {
     warnings.push('JWT_SECRET is using the default value. Please change it in production!');
   }
 
