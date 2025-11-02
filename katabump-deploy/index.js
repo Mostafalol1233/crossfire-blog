@@ -1,3 +1,28 @@
+// Auto-install missing packages before anything else
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
+
+async function ensurePackages() {
+  try {
+    // Try to import dotenv
+    await import('dotenv/config');
+  } catch (error) {
+    console.log('📦 Installing missing packages...');
+    try {
+      await execAsync('npm install dotenv @neondatabase/serverless', { cwd: import.meta.dirname });
+      console.log('✅ Packages installed successfully');
+      // Import dotenv after installation
+      await import('dotenv/config');
+    } catch (installError) {
+      console.error('❌ Failed to install packages:', installError);
+    }
+  }
+}
+
+// Run package check before starting
+await ensurePackages();
+
 // server/index.ts
 import express2 from "express";
 import path3 from "path";
@@ -159,47 +184,49 @@ var insertNewsletterSubscriberSchema = z.object({
   email: z.string().email()
 });
 
-// server/mongodb.ts
-import mongoose2 from "mongoose";
+// server/neon.ts - PostgreSQL connection
+import { neon } from '@neondatabase/serverless';
+
+var sql = null;
 var isConnected = false;
-async function connectMongoDB() {
-  if (isConnected) {
-    console.log("MongoDB is already connected");
-    return;
+
+async function connectNeon() {
+  if (isConnected && sql) {
+    console.log("✅ Neon PostgreSQL is already connected");
+    return sql;
   }
+  
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI environment variable is not defined");
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error("DATABASE_URL environment variable is not defined");
     }
-    await mongoose2.connect(mongoUri);
+    
+    sql = neon(databaseUrl);
     isConnected = true;
-    console.log("MongoDB connected successfully");
+    console.log("✅ Neon PostgreSQL connected successfully");
+    return sql;
   } catch (error) {
-    console.error("MongoDB connection error:", error);
+    console.error("❌ Neon connection error:", error);
     throw error;
   }
 }
-mongoose2.connection.on("disconnected", () => {
-  isConnected = false;
-  console.log("MongoDB disconnected");
-});
-mongoose2.connection.on("error", (err) => {
-  console.error("MongoDB connection error:", err);
-});
 
-// server/mongodb-storage.ts
+// server/neon-storage.ts
 var MongoDBStorage = class {
   mercenaries;
   initialized = false;
+  sql;
+  
   constructor() {
     this.mercenaries = /* @__PURE__ */ new Map();
     this.initializeMercenaries();
     this.connect();
   }
+  
   async connect() {
     if (!this.initialized) {
-      await connectMongoDB();
+      this.sql = await connectNeon();
       this.initialized = true;
     }
   }
