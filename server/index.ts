@@ -60,7 +60,6 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
     throw err;
   });
@@ -72,6 +71,15 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     serveStatic(app);
+  }
+
+  // Serve static files in production
+  if (process.env.NODE_ENV === "production") {
+    const publicPath = path.resolve(currentDir, "../dist/public");
+    app.use(express.static(publicPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(path.resolve(publicPath, "index.html"));
+    });
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
