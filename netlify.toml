@@ -1,9 +1,10 @@
 [build]
   publish = "dist/public"
-  command = "npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
+  command = "npm ci && npm run build"
   
 [build.environment]
   NODE_VERSION = "20"
+  NPM_CONFIG_PRODUCTION = "false"
 
 [[redirects]]
   from = "/api/*"
