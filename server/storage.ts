@@ -13,13 +13,19 @@ import {
   type InsertTicket,
   type TicketReply,
   type InsertTicketReply,
+  type Admin,
+  type InsertAdmin,
+  type NewsletterSubscriber,
+  type InsertNewsletterSubscriber,
   users,
   posts,
   comments,
   events,
   news,
   tickets,
-  ticketReplies
+  ticketReplies,
+  admins,
+  newsletterSubscribers
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -86,6 +92,24 @@ export interface IStorage {
   // Ticket Reply methods
   getTicketReplies(ticketId: string): Promise<TicketReply[]>;
   createTicketReply(reply: InsertTicketReply): Promise<TicketReply>;
+
+  // Admin methods
+  getAllAdmins(): Promise<Admin[]>;
+  getAdminById(id: string): Promise<Admin | undefined>;
+  getAdminByUsername(username: string): Promise<Admin | undefined>;
+  createAdmin(admin: InsertAdmin): Promise<Admin>;
+  updateAdmin(id: string, admin: Partial<InsertAdmin>): Promise<Admin | undefined>;
+  deleteAdmin(id: string): Promise<boolean>;
+
+  // Event detail methods
+  getEventById(id: string): Promise<Event | undefined>;
+  updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
+
+  // Newsletter methods
+  getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]>;
+  getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined>;
+  createNewsletterSubscriber(subscriber: InsertNewsletterSubscriber): Promise<NewsletterSubscriber>;
+  deleteNewsletterSubscriber(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -97,6 +121,8 @@ export class MemStorage implements IStorage {
   private mercenaries: Map<string, Mercenary>;
   private tickets: Map<string, Ticket>;
   private ticketReplies: Map<string, TicketReply>;
+  private admins: Map<string, Admin>;
+  private newsletterSubscribers: Map<string, NewsletterSubscriber>;
 
   constructor() {
     this.users = new Map();
@@ -107,6 +133,8 @@ export class MemStorage implements IStorage {
     this.mercenaries = new Map();
     this.tickets = new Map();
     this.ticketReplies = new Map();
+    this.admins = new Map();
+    this.newsletterSubscribers = new Map();
     this.initializeMockData();
   }
 
@@ -1194,6 +1222,9 @@ Don't miss out! Join the celebration and embrace the competition!
     const event: Event = { 
       ...insertEvent, 
       id,
+      titleAr: insertEvent.titleAr || "",
+      description: insertEvent.description || "",
+      descriptionAr: insertEvent.descriptionAr || "",
       image: insertEvent.image || ""
     };
     this.events.set(id, event);
@@ -1309,6 +1340,77 @@ Don't miss out! Join the celebration and embrace the competition!
     };
     this.ticketReplies.set(id, newReply);
     return newReply;
+  }
+
+  async getAllAdmins(): Promise<Admin[]> {
+    return Array.from(this.admins.values());
+  }
+
+  async getAdminById(id: string): Promise<Admin | undefined> {
+    return this.admins.get(id);
+  }
+
+  async getAdminByUsername(username: string): Promise<Admin | undefined> {
+    return Array.from(this.admins.values()).find(admin => admin.username === username);
+  }
+
+  async createAdmin(admin: InsertAdmin): Promise<Admin> {
+    const id = randomUUID();
+    const newAdmin: Admin = {
+      ...admin,
+      id,
+      role: admin.role || "admin",
+      createdAt: new Date(),
+    };
+    this.admins.set(id, newAdmin);
+    return newAdmin;
+  }
+
+  async updateAdmin(id: string, admin: Partial<InsertAdmin>): Promise<Admin | undefined> {
+    const existing = this.admins.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...admin };
+    this.admins.set(id, updated);
+    return updated;
+  }
+
+  async deleteAdmin(id: string): Promise<boolean> {
+    return this.admins.delete(id);
+  }
+
+  async getEventById(id: string): Promise<Event | undefined> {
+    return this.events.get(id);
+  }
+
+  async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined> {
+    const existing = this.events.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...event };
+    this.events.set(id, updated);
+    return updated;
+  }
+
+  async getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+    return Array.from(this.newsletterSubscribers.values());
+  }
+
+  async getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined> {
+    return Array.from(this.newsletterSubscribers.values()).find(sub => sub.email === email);
+  }
+
+  async createNewsletterSubscriber(subscriber: InsertNewsletterSubscriber): Promise<NewsletterSubscriber> {
+    const id = randomUUID();
+    const newSubscriber: NewsletterSubscriber = {
+      ...subscriber,
+      id,
+      createdAt: new Date(),
+    };
+    this.newsletterSubscribers.set(id, newSubscriber);
+    return newSubscriber;
+  }
+
+  async deleteNewsletterSubscriber(id: string): Promise<boolean> {
+    return this.newsletterSubscribers.delete(id);
   }
 }
 
@@ -1774,6 +1876,126 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating ticket reply:", error);
       throw error;
+    }
+  }
+
+  async getAllAdmins(): Promise<Admin[]> {
+    try {
+      const result = await db.select().from(admins).orderBy(desc(admins.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting all admins:", error);
+      return [];
+    }
+  }
+
+  async getAdminById(id: string): Promise<Admin | undefined> {
+    try {
+      const result = await db.select().from(admins).where(eq(admins.id, id));
+      return result[0];
+    } catch (error) {
+      console.error("Error getting admin by id:", error);
+      return undefined;
+    }
+  }
+
+  async getAdminByUsername(username: string): Promise<Admin | undefined> {
+    try {
+      const result = await db.select().from(admins).where(eq(admins.username, username));
+      return result[0];
+    } catch (error) {
+      console.error("Error getting admin by username:", error);
+      return undefined;
+    }
+  }
+
+  async createAdmin(insertAdmin: InsertAdmin): Promise<Admin> {
+    try {
+      const result = await db.insert(admins).values(insertAdmin).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating admin:", error);
+      throw error;
+    }
+  }
+
+  async updateAdmin(id: string, updates: Partial<InsertAdmin>): Promise<Admin | undefined> {
+    try {
+      const result = await db.update(admins).set(updates).where(eq(admins.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error updating admin:", error);
+      return undefined;
+    }
+  }
+
+  async deleteAdmin(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(admins).where(eq(admins.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting admin:", error);
+      return false;
+    }
+  }
+
+  async getEventById(id: string): Promise<Event | undefined> {
+    try {
+      const result = await db.select().from(events).where(eq(events.id, id));
+      return result[0];
+    } catch (error) {
+      console.error("Error getting event by id:", error);
+      return undefined;
+    }
+  }
+
+  async updateEvent(id: string, updates: Partial<InsertEvent>): Promise<Event | undefined> {
+    try {
+      const result = await db.update(events).set(updates).where(eq(events.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error updating event:", error);
+      return undefined;
+    }
+  }
+
+  async getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+    try {
+      const result = await db.select().from(newsletterSubscribers).orderBy(desc(newsletterSubscribers.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Error getting all newsletter subscribers:", error);
+      return [];
+    }
+  }
+
+  async getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined> {
+    try {
+      const result = await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.email, email));
+      return result[0];
+    } catch (error) {
+      console.error("Error getting newsletter subscriber by email:", error);
+      return undefined;
+    }
+  }
+
+  async createNewsletterSubscriber(insertSubscriber: InsertNewsletterSubscriber): Promise<NewsletterSubscriber> {
+    try {
+      const result = await db.insert(newsletterSubscribers).values(insertSubscriber).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating newsletter subscriber:", error);
+      throw error;
+    }
+  }
+
+  async deleteNewsletterSubscriber(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(newsletterSubscribers).where(eq(newsletterSubscribers.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting newsletter subscriber:", error);
+      return false;
     }
   }
 }

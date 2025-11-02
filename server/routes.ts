@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema } from "@shared/schema";
-import { generateToken, verifyAdminPassword, requireAuth } from "./utils/auth";
+import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema } from "@shared/schema";
+import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, comparePassword, hashPassword } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 
 // Configure multer for memory storage
@@ -13,20 +13,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { password } = req.body;
+      const { username, password } = req.body;
       
-      if (!password) {
-        return res.status(400).json({ error: "Password is required" });
-      }
+      if (username && password) {
+        const admin = await storage.getAdminByUsername(username);
+        
+        if (!admin) {
+          return res.status(401).json({ error: "Invalid credentials" });
+        }
 
-      const isValid = await verifyAdminPassword(password);
-      
-      if (!isValid) {
-        return res.status(401).json({ error: "Invalid password" });
-      }
+        const isValid = await comparePassword(password, admin.password);
+        
+        if (!isValid) {
+          return res.status(401).json({ error: "Invalid credentials" });
+        }
 
-      const token = generateToken({ role: "admin" });
-      res.json({ token });
+        const token = generateToken({ 
+          id: admin.id, 
+          username: admin.username, 
+          role: admin.role 
+        });
+        
+        res.json({ 
+          token, 
+          admin: { 
+            id: admin.id, 
+            username: admin.username, 
+            role: admin.role 
+          } 
+        });
+      } else if (password) {
+        const isValid = await verifyAdminPassword(password);
+        
+        if (!isValid) {
+          return res.status(401).json({ error: "Invalid password" });
+        }
+
+        const token = generateToken({ role: "super_admin" });
+        res.json({ token, admin: { role: "super_admin" } });
+      } else {
+        return res.status(400).json({ error: "Username and password or password required" });
+      }
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -310,12 +337,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ticket routes
   app.get("/api/tickets", requireAuth, async (req, res) => {
     try {
+      const user = (req as any).user;
       const tickets = await storage.getAllTickets();
-      const formattedTickets = tickets.map((ticket) => ({
-        ...ticket,
-        createdAt: formatDate(ticket.createdAt),
-        updatedAt: formatDate(ticket.updatedAt),
-      }));
+      
+      const formattedTickets = tickets.map((ticket) => {
+        const formatted = {
+          ...ticket,
+          createdAt: formatDate(ticket.createdAt),
+          updatedAt: formatDate(ticket.updatedAt),
+        };
+        
+        if (user.role !== 'super_admin') {
+          delete (formatted as any).userEmail;
+        }
+        
+        return formatted;
+      });
+      
       res.json(formattedTickets);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -447,6 +485,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(formattedReply);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Admin management routes
+  app.get("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const admins = await storage.getAllAdmins();
+      const sanitizedAdmins = admins.map(({ password, ...admin }) => admin);
+      res.json(sanitizedAdmins);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admins", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const { username, password, role } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      const existingAdmin = await storage.getAdminByUsername(username);
+      if (existingAdmin) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const hashedPassword = await hashPassword(password);
+      const data = insertAdminSchema.parse({
+        username,
+        password: hashedPassword,
+        role: role || "admin",
+      });
+      
+      const admin = await storage.createAdmin(data);
+      const { password: _, ...sanitizedAdmin } = admin;
+      
+      res.status(201).json(sanitizedAdmin);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const updates: any = {};
+      
+      if (req.body.username !== undefined) updates.username = req.body.username;
+      if (req.body.password !== undefined) {
+        updates.password = await hashPassword(req.body.password);
+      }
+      if (req.body.role !== undefined) updates.role = req.body.role;
+
+      const admin = await storage.updateAdmin(req.params.id, updates);
+      
+      if (!admin) {
+        return res.status(404).json({ error: "Admin not found" });
+      }
+
+      const { password: _, ...sanitizedAdmin } = admin;
+      res.json(sanitizedAdmin);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admins/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteAdmin(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Admin not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Event detail routes
+  app.get("/api/events/:id", async (req, res) => {
+    try {
+      const event = await storage.getEventById(req.params.id);
+      
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      res.json(event);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/events/:id", requireAuth, async (req, res) => {
+    try {
+      const updates = req.body;
+      const event = await storage.updateEvent(req.params.id, updates);
+      
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      res.json(event);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Newsletter subscriber routes
+  app.get("/api/newsletter-subscribers", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const subscribers = await storage.getAllNewsletterSubscribers();
+      res.json(subscribers);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/newsletter-subscribe", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const existing = await storage.getNewsletterSubscriberByEmail(email);
+      if (existing) {
+        return res.status(400).json({ error: "Email already subscribed" });
+      }
+
+      const data = insertNewsletterSubscriberSchema.parse({ email });
+      const subscriber = await storage.createNewsletterSubscriber(data);
+      
+      res.status(201).json(subscriber);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/newsletter-subscribers/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteNewsletterSubscriber(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Subscriber not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 

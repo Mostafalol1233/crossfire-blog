@@ -36,6 +36,9 @@ export const comments = pgTable("comments", {
 export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  titleAr: text("title_ar").notNull().default(""),
+  description: text("description").notNull().default(""),
+  descriptionAr: text("description_ar").notNull().default(""),
   date: text("date").notNull(),
   type: text("type").notNull(),
   image: text("image").notNull().default(""),
@@ -44,10 +47,12 @@ export const events = pgTable("events", {
 export const news = pgTable("news", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  titleAr: text("title_ar").notNull().default(""),
   dateRange: text("date_range").notNull(),
   image: text("image").notNull(),
   category: text("category").notNull(),
   content: text("content").notNull(),
+  contentAr: text("content_ar").notNull().default(""),
   author: text("author").notNull(),
   featured: boolean("featured").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -72,6 +77,20 @@ export const ticketReplies = pgTable("ticket_replies", {
   authorName: text("author_name").notNull(),
   content: text("content").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const admins = pgTable("admins", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").notNull().default("admin"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -110,6 +129,16 @@ export const insertTicketReplySchema = createInsertSchema(ticketReplies).omit({
   createdAt: true,
 });
 
+export const insertAdminSchema = createInsertSchema(admins).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSubscribers).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -130,3 +159,9 @@ export type Ticket = typeof tickets.$inferSelect;
 
 export type InsertTicketReply = z.infer<typeof insertTicketReplySchema>;
 export type TicketReply = typeof ticketReplies.$inferSelect;
+
+export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type Admin = typeof admins.$inferSelect;
+
+export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;

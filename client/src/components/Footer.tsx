@@ -1,11 +1,51 @@
 import { Link } from "wouter";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useLanguage } from "./LanguageProvider";
 import { SiGithub, SiX, SiLinkedin } from "react-icons/si";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export function Footer() {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+
+  const subscribeMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await fetch("/api/newsletter-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Subscription failed");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Successfully subscribed to newsletter!" });
+      setEmail("");
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Subscription failed", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      subscribeMutation.mutate(email);
+    }
+  };
 
   const quickLinks = [
     { label: t("home"), path: "/" },
@@ -78,17 +118,25 @@ export function Footer() {
             <p className="text-sm text-muted-foreground mb-4">
               Subscribe to get the latest articles delivered to your inbox.
             </p>
-            <div className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
                 type="email"
                 placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="h-9"
                 data-testid="input-newsletter-email"
               />
-              <Button size="sm" data-testid="button-newsletter-submit">
-                {t("submit")}
+              <Button 
+                size="sm" 
+                type="submit"
+                disabled={subscribeMutation.isPending}
+                data-testid="button-newsletter-submit"
+              >
+                {subscribeMutation.isPending ? "..." : t("submit")}
               </Button>
-            </div>
+            </form>
           </div>
         </div>
 

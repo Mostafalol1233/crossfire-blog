@@ -13,6 +13,7 @@ import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import News from "@/pages/News";
 import NewsDetail from "@/pages/NewsDetail";
+import EventDetail from "@/pages/EventDetail";
 import Mercenaries from "@/pages/Mercenaries";
 import GraveGames from "@/pages/GraveGames";
 import Category from "@/pages/Category";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/category/:category" component={Category} />
       <Route path="/news" component={News} />
       <Route path="/news/:id" component={NewsDetail} />
+      <Route path="/events/:id" component={EventDetail} />
       <Route path="/mercenaries" component={Mercenaries} />
       <Route path="/grave-games" component={GraveGames} />
       <Route path="/article/:id" component={Article} />

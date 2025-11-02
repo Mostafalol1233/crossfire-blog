@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +21,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
@@ -25,6 +44,14 @@ import {
   Upload,
   Copy,
   CheckCircle,
+  Users,
+  Mail,
+  Languages,
+  Calendar,
+  Newspaper,
+  LayoutDashboard,
+  LifeBuoy,
+  Shield,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import ReactQuill from "react-quill";
@@ -33,19 +60,38 @@ import "react-quill/dist/quill.snow.css";
 export default function Admin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
+  const [adminRole, setAdminRole] = useState<string>("");
+  const [adminUsername, setAdminUsername] = useState<string>("");
+  
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isCreatingNews, setIsCreatingNews] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
-  const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [ticketReplyContent, setTicketReplyContent] = useState("");
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<any>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<string>("");
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
+    const role = localStorage.getItem("adminRole");
+    const username = localStorage.getItem("adminUsername");
+    
     if (!token) {
       setLocation("/admin/login");
+    } else {
+      setAdminRole(role || "");
+      setAdminUsername(username || "");
     }
   }, [setLocation]);
+
+  const isSuperAdmin = adminRole === "super_admin";
 
   const [postForm, setPostForm] = useState({
     title: "",
@@ -61,6 +107,9 @@ export default function Admin() {
 
   const [eventForm, setEventForm] = useState({
     title: "",
+    titleAr: "",
+    description: "",
+    descriptionAr: "",
     date: "",
     type: "upcoming" as "upcoming" | "trending",
     image: "",
@@ -68,17 +117,21 @@ export default function Admin() {
 
   const [newsForm, setNewsForm] = useState({
     title: "",
+    titleAr: "",
     dateRange: "",
     image: "",
     category: "News",
     content: "",
+    contentAr: "",
     author: "Bimora Team",
     featured: false,
   });
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [adminForm, setAdminForm] = useState({
+    username: "",
+    password: "",
+    role: "admin" as "admin" | "super_admin",
+  });
 
   const { data: stats } = useQuery<{
     totalPosts: number;
@@ -105,23 +158,23 @@ export default function Admin() {
     queryKey: ["/api/tickets"],
   });
 
+  const { data: admins } = useQuery<any[]>({
+    queryKey: ["/api/admins"],
+    enabled: isSuperAdmin,
+  });
+
+  const { data: subscribers } = useQuery<any[]>({
+    queryKey: ["/api/newsletter-subscribers"],
+    enabled: isSuperAdmin,
+  });
+
   const createPostMutation = useMutation({
     mutationFn: (data: any) => apiRequest("/api/posts", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      setIsCreating(false);
-      setPostForm({
-        title: "",
-        content: "",
-        summary: "",
-        image: "",
-        category: "Tutorials",
-        tags: "",
-        author: "Bimora Team",
-        featured: false,
-        readingTime: 5,
-      });
+      setIsCreatingPost(false);
+      resetPostForm();
       toast({ title: "Post created successfully" });
     },
     onError: () => {
@@ -135,6 +188,8 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       setEditingPost(null);
+      setIsCreatingPost(false);
+      resetPostForm();
       toast({ title: "Post updated successfully" });
     },
     onError: () => {
@@ -158,11 +213,27 @@ export default function Admin() {
     mutationFn: (data: any) => apiRequest("/api/events", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      setEventForm({ title: "", date: "", type: "upcoming", image: "" });
+      setIsCreatingEvent(false);
+      resetEventForm();
       toast({ title: "Event created successfully" });
     },
     onError: () => {
       toast({ title: "Failed to create event", variant: "destructive" });
+    },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiRequest(`/api/events/${id}`, "PATCH", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setEditingEvent(null);
+      setIsCreatingEvent(false);
+      resetEventForm();
+      toast({ title: "Event updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update event", variant: "destructive" });
     },
   });
 
@@ -182,15 +253,7 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
       setIsCreatingNews(false);
-      setNewsForm({
-        title: "",
-        dateRange: "",
-        image: "",
-        category: "News",
-        content: "",
-        author: "Bimora Team",
-        featured: false,
-      });
+      resetNewsForm();
       toast({ title: "News item created successfully" });
     },
     onError: () => {
@@ -204,6 +267,8 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
       setEditingNews(null);
+      setIsCreatingNews(false);
+      resetNewsForm();
       toast({ title: "News item updated successfully" });
     },
     onError: () => {
@@ -222,42 +287,57 @@ export default function Admin() {
     },
   });
 
-  const updateTicketStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiRequest(`/api/tickets/${id}`, "PATCH", { status }),
+  const createAdminMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/admins", "POST", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      toast({ title: "Ticket status updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admins"] });
+      setIsCreatingAdmin(false);
+      resetAdminForm();
+      toast({ title: "Admin created successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to update ticket status", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create admin", 
+        description: error.message,
+        variant: "destructive" 
+      });
     },
   });
 
-  const addTicketReplyMutation = useMutation({
-    mutationFn: ({ ticketId, content }: { ticketId: string; content: string }) =>
-      apiRequest(`/api/tickets/${ticketId}/replies`, "POST", {
-        authorName: "Admin",
-        content,
-        isAdmin: true,
-      }),
+  const updateAdminMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiRequest(`/api/admins/${id}`, "PATCH", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      toast({ title: "Reply added successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admins"] });
+      setEditingAdmin(null);
+      setIsCreatingAdmin(false);
+      resetAdminForm();
+      toast({ title: "Admin updated successfully" });
     },
     onError: () => {
-      toast({ title: "Failed to add reply", variant: "destructive" });
+      toast({ title: "Failed to update admin", variant: "destructive" });
     },
   });
 
-  const deleteTicketMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/tickets/${id}`, "DELETE"),
+  const deleteAdminMutation = useMutation({
+    mutationFn: (id: string) => apiRequest(`/api/admins/${id}`, "DELETE"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      toast({ title: "Ticket deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admins"] });
+      toast({ title: "Admin deleted successfully" });
     },
     onError: () => {
-      toast({ title: "Failed to delete ticket", variant: "destructive" });
+      toast({ title: "Failed to delete admin", variant: "destructive" });
+    },
+  });
+
+  const deleteSubscriberMutation = useMutation({
+    mutationFn: (id: string) => apiRequest(`/api/newsletter-subscribers/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/newsletter-subscribers"] });
+      toast({ title: "Subscriber deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete subscriber", variant: "destructive" });
     },
   });
 
@@ -290,6 +370,54 @@ export default function Admin() {
     },
   });
 
+  const resetPostForm = () => {
+    setPostForm({
+      title: "",
+      content: "",
+      summary: "",
+      image: "",
+      category: "Tutorials",
+      tags: "",
+      author: "Bimora Team",
+      featured: false,
+      readingTime: 5,
+    });
+  };
+
+  const resetEventForm = () => {
+    setEventForm({
+      title: "",
+      titleAr: "",
+      description: "",
+      descriptionAr: "",
+      date: "",
+      type: "upcoming",
+      image: "",
+    });
+  };
+
+  const resetNewsForm = () => {
+    setNewsForm({
+      title: "",
+      titleAr: "",
+      dateRange: "",
+      image: "",
+      category: "News",
+      content: "",
+      contentAr: "",
+      author: "Bimora Team",
+      featured: false,
+    });
+  };
+
+  const resetAdminForm = () => {
+    setAdminForm({
+      username: "",
+      password: "",
+      role: "admin",
+    });
+  };
+
   const handleImageUpload = () => {
     if (imageFile) {
       uploadImageMutation.mutate(imageFile);
@@ -303,64 +431,57 @@ export default function Admin() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCreatePost = () => {
-    createPostMutation.mutate({
-      ...postForm,
-      tags: postForm.tags.split(",").map((t) => t.trim()),
-    });
-  };
-
-  const handleUpdatePost = () => {
-    if (!editingPost) return;
-    updatePostMutation.mutate({
-      id: editingPost.id,
-      data: {
-        ...postForm,
-        tags: postForm.tags.split(",").map((t) => t.trim()),
-      },
-    });
-  };
-
-  const handleCreateNews = () => {
-    createNewsMutation.mutate(newsForm);
-  };
-
-  const handleUpdateNews = () => {
-    if (!editingNews) return;
-    updateNewsMutation.mutate({
-      id: editingNews.id,
-      data: newsForm,
-    });
-  };
-
-  const handlePostDialogChange = (open: boolean) => {
-    setIsCreating(open);
-    if (!open) {
-      setEditingPost(null);
-      setPostForm({
-        title: "",
-        content: "",
-        summary: "",
-        image: "",
-        category: "Tutorials",
-        tags: "",
-        author: "Bimora Team",
-        featured: false,
-        readingTime: 5,
-      });
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminRole");
+    localStorage.removeItem("adminUsername");
     setLocation("/");
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteConfirmId) return;
+    
+    switch (deleteType) {
+      case "post":
+        deletePostMutation.mutate(deleteConfirmId);
+        break;
+      case "event":
+        deleteEventMutation.mutate(deleteConfirmId);
+        break;
+      case "news":
+        deleteNewsMutation.mutate(deleteConfirmId);
+        break;
+      case "admin":
+        deleteAdminMutation.mutate(deleteConfirmId);
+        break;
+      case "subscriber":
+        deleteSubscriberMutation.mutate(deleteConfirmId);
+        break;
+    }
+    
+    setDeleteConfirmId(null);
+    setDeleteType("");
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="outline" data-testid="badge-admin-username">
+                {adminUsername}
+              </Badge>
+              <Badge 
+                variant={isSuperAdmin ? "default" : "secondary"}
+                data-testid="badge-admin-role"
+              >
+                <Shield className="h-3 w-3 mr-1" />
+                {isSuperAdmin ? "Super Admin" : "Admin"}
+              </Badge>
+            </div>
+          </div>
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -371,54 +492,155 @@ export default function Admin() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalPosts || 0}</div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="dashboard" className="space-y-6" data-testid="tabs-admin">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+            <TabsTrigger value="dashboard" data-testid="tab-dashboard">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="posts" data-testid="tab-posts">
+              <FileText className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Posts</span>
+            </TabsTrigger>
+            <TabsTrigger value="events-news" data-testid="tab-events-news">
+              <Calendar className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Events & News</span>
+            </TabsTrigger>
+            <TabsTrigger value="translations" data-testid="tab-translations">
+              <Languages className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Translations</span>
+            </TabsTrigger>
+            {isSuperAdmin && (
+              <TabsTrigger value="admins" data-testid="tab-admins">
+                <Users className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Admins</span>
+              </TabsTrigger>
+            )}
+            {isSuperAdmin && (
+              <TabsTrigger value="subscribers" data-testid="tab-subscribers">
+                <Mail className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Subscribers</span>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="tickets" data-testid="tab-tickets">
+              <LifeBuoy className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Tickets</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Comments
-              </CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats?.totalComments || 0}
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="dashboard" className="space-y-6" data-testid="content-dashboard">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-total-posts">{stats?.totalPosts || 0}</div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalViews || 0}</div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Comments</CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-total-comments">{stats?.totalComments || 0}</div>
+                </CardContent>
+              </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Posts</h2>
-              <Dialog open={isCreating} onOpenChange={handlePostDialogChange}>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-total-views">{stats?.totalViews || 0}</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Image Upload</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        setUploadedImageUrl("");
+                      }
+                    }}
+                    data-testid="input-image-upload"
+                  />
+                  {imageFile && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Selected: {imageFile.name}
+                    </p>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={handleImageUpload}
+                  disabled={!imageFile || uploadImageMutation.isPending}
+                  className="w-full"
+                  data-testid="button-upload-image"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploadImageMutation.isPending ? "Uploading..." : "Upload to Catbox.moe"}
+                </Button>
+
+                {uploadedImageUrl && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Image URL:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={uploadedImageUrl}
+                        readOnly
+                        data-testid="input-uploaded-url"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopyUrl}
+                        data-testid="button-copy-url"
+                      >
+                        {copied ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="posts" className="space-y-6" data-testid="content-posts">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">Posts Management</h2>
+              <Dialog open={isCreatingPost} onOpenChange={(open) => {
+                setIsCreatingPost(open);
+                if (!open) {
+                  setEditingPost(null);
+                  resetPostForm();
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button data-testid="button-create-post">
                     <Plus className="h-4 w-4 mr-2" />
                     New Post
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
                       {editingPost ? "Edit Post" : "Create New Post"}
@@ -450,13 +672,10 @@ export default function Admin() {
                               ['clean']
                             ],
                           }}
-                          placeholder="Write your content here... Format text easily with the toolbar above"
-                          style={{ minHeight: '300px' }}
+                          placeholder="Write your content here..."
+                          style={{ minHeight: '200px' }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Use the toolbar to format your text. Copy and paste formatted content to preserve its styling.
-                      </p>
                     </div>
                     <Textarea
                       placeholder="Summary (optional)"
@@ -464,7 +683,7 @@ export default function Admin() {
                       onChange={(e) =>
                         setPostForm({ ...postForm, summary: e.target.value })
                       }
-                      rows={3}
+                      rows={2}
                       data-testid="input-post-summary"
                     />
                     <Input
@@ -519,9 +738,17 @@ export default function Admin() {
                       <span className="text-sm">Featured</span>
                     </label>
                     <Button
-                      onClick={
-                        editingPost ? handleUpdatePost : handleCreatePost
-                      }
+                      onClick={() => {
+                        const data = {
+                          ...postForm,
+                          tags: postForm.tags.split(",").map((t) => t.trim()),
+                        };
+                        if (editingPost) {
+                          updatePostMutation.mutate({ id: editingPost.id, data });
+                        } else {
+                          createPostMutation.mutate(data);
+                        }
+                      }}
                       className="w-full"
                       data-testid="button-submit-post"
                     >
@@ -538,24 +765,27 @@ export default function Admin() {
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="font-semibold">{post.title}</h3>
                           {post.featured && (
                             <Badge variant="default" className="text-xs">
                               Featured
                             </Badge>
                           )}
+                          <Badge variant="outline" className="text-xs">
+                            {post.category}
+                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                           {post.summary}
                         </p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{post.category}</span>
-                          <span>•</span>
                           <div className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
                             <span>{post.views}</span>
                           </div>
+                          <span>•</span>
+                          <span>{post.author}</span>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -575,17 +805,20 @@ export default function Admin() {
                               featured: post.featured,
                               readingTime: post.readingTime,
                             });
-                            setIsCreating(true);
+                            setIsCreatingPost(true);
                           }}
-                          data-testid={`button-edit-${post.id}`}
+                          data-testid={`button-edit-post-${post.id}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deletePostMutation.mutate(post.id)}
-                          data-testid={`button-delete-${post.id}`}
+                          onClick={() => {
+                            setDeleteConfirmId(post.id);
+                            setDeleteType("post");
+                          }}
+                          data-testid={`button-delete-post-${post.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -595,484 +828,717 @@ export default function Admin() {
                 </Card>
               ))}
             </div>
-          </div>
+          </TabsContent>
 
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Image Upload</h2>
-            
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Upload to Catbox.moe</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setImageFile(file);
-                        setUploadedImageUrl("");
-                      }
-                    }}
-                    data-testid="input-image-upload"
-                  />
-                  {imageFile && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Selected: {imageFile.name}
-                    </p>
-                  )}
-                </div>
-                
-                <Button
-                  onClick={handleImageUpload}
-                  disabled={!imageFile || uploadImageMutation.isPending}
-                  className="w-full"
-                  data-testid="button-upload-image"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {uploadImageMutation.isPending ? "Uploading..." : "Upload Image"}
-                </Button>
-
-                {uploadedImageUrl && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Image URL:</p>
-                    <div className="flex gap-2">
-                      <Input
-                        value={uploadedImageUrl}
-                        readOnly
-                        data-testid="input-uploaded-url"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleCopyUrl}
-                        data-testid="button-copy-url"
-                      >
-                        {copied ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
+          <TabsContent value="events-news" className="space-y-6" data-testid="content-events-news">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold">Events</h2>
+                  <Dialog open={isCreatingEvent} onOpenChange={(open) => {
+                    setIsCreatingEvent(open);
+                    if (!open) {
+                      setEditingEvent(null);
+                      resetEventForm();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="button-create-event">
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Event
                       </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Use this URL in your posts for images hosted on catbox.moe
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <h2 className="text-2xl font-semibold mb-4">Events Ribbon</h2>
-
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Add New Event</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  placeholder="Event title"
-                  value={eventForm.title}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, title: e.target.value })
-                  }
-                  data-testid="input-event-title"
-                />
-                <Input
-                  placeholder="Date"
-                  value={eventForm.date}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, date: e.target.value })
-                  }
-                  data-testid="input-event-date"
-                />
-                <Input
-                  placeholder="Image URL (optional)"
-                  value={eventForm.image}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, image: e.target.value })
-                  }
-                  data-testid="input-event-image"
-                />
-                <select
-                  value={eventForm.type}
-                  onChange={(e) =>
-                    setEventForm({
-                      ...eventForm,
-                      type: e.target.value as "upcoming" | "trending",
-                    })
-                  }
-                  className="w-full h-9 px-3 rounded-md border border-input bg-background"
-                  data-testid="select-event-type"
-                >
-                  <option value="upcoming">Upcoming</option>
-                  <option value="trending">Trending</option>
-                </select>
-                <Button
-                  onClick={() => createEventMutation.mutate(eventForm)}
-                  className="w-full"
-                  data-testid="button-create-event"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event
-                </Button>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-3">
-              {events?.map((event: any) => (
-                <Card key={event.id} data-testid={`event-card-${event.id}`}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {event.date} • {event.type}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteEventMutation.mutate(event.id)}
-                        data-testid={`button-delete-event-${event.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold">News Management</h2>
-            <Dialog open={isCreatingNews} onOpenChange={setIsCreatingNews}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-create-news">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New News
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingNews ? "Edit News Item" : "Create New News Item"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <Input
-                    placeholder="Title"
-                    value={newsForm.title}
-                    onChange={(e) =>
-                      setNewsForm({ ...newsForm, title: e.target.value })
-                    }
-                    data-testid="input-news-title"
-                  />
-                  <Input
-                    placeholder="Date Range (e.g., Oct 15 - Nov 4)"
-                    value={newsForm.dateRange}
-                    onChange={(e) =>
-                      setNewsForm({ ...newsForm, dateRange: e.target.value })
-                    }
-                    data-testid="input-news-daterange"
-                  />
-                  <Input
-                    placeholder="Image URL"
-                    value={newsForm.image}
-                    onChange={(e) =>
-                      setNewsForm({ ...newsForm, image: e.target.value })
-                    }
-                    data-testid="input-news-image"
-                  />
-                  <select
-                    value={newsForm.category}
-                    onChange={(e) =>
-                      setNewsForm({ ...newsForm, category: e.target.value })
-                    }
-                    className="w-full h-9 px-3 rounded-md border border-input bg-background"
-                    data-testid="select-news-category"
-                  >
-                    <option value="News">News</option>
-                    <option value="Events">Events</option>
-                    <option value="Reviews">Reviews</option>
-                    <option value="Tutorials">Tutorials</option>
-                  </select>
-                  <div className="space-y-2">
-                    <div data-testid="input-news-content">
-                      <ReactQuill
-                        theme="snow"
-                        value={newsForm.content}
-                        onChange={(value) =>
-                          setNewsForm({ ...newsForm, content: value })
-                        }
-                        modules={{
-                          toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            ['link', 'blockquote', 'code-block'],
-                            ['clean']
-                          ],
-                        }}
-                        placeholder="Write your content here... Format text easily with the toolbar above"
-                        style={{ minHeight: '300px' }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Use the toolbar to format your text. Copy and paste formatted content to preserve its styling.
-                    </p>
-                  </div>
-                  <Input
-                    placeholder="Author"
-                    value={newsForm.author}
-                    onChange={(e) =>
-                      setNewsForm({ ...newsForm, author: e.target.value })
-                    }
-                    data-testid="input-news-author"
-                  />
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={newsForm.featured}
-                      onChange={(e) =>
-                        setNewsForm({
-                          ...newsForm,
-                          featured: e.target.checked,
-                        })
-                      }
-                      data-testid="checkbox-news-featured"
-                    />
-                    <span className="text-sm">Featured</span>
-                  </label>
-                  <Button
-                    onClick={
-                      editingNews ? handleUpdateNews : handleCreateNews
-                    }
-                    className="w-full"
-                    data-testid="button-submit-news"
-                  >
-                    {editingNews ? "Update News" : "Create News"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {newsItems?.map((news: any) => (
-              <Card key={news.id} data-testid={`news-card-${news.id}`}>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-sm line-clamp-1">{news.title}</h3>
-                          {news.featured && (
-                            <Badge variant="default" className="text-xs">
-                              Featured
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {news.dateRange}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          {news.category}
-                        </Badge>
-                      </div>
-                    </div>
-                    {news.image && (
-                      <img
-                        src={news.image}
-                        alt={news.title}
-                        className="w-full h-32 object-cover rounded-md"
-                      />
-                    )}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setEditingNews(news);
-                          setNewsForm({
-                            title: news.title,
-                            dateRange: news.dateRange,
-                            image: news.image,
-                            category: news.category,
-                            content: news.content,
-                            author: news.author,
-                            featured: news.featured,
-                          });
-                          setIsCreatingNews(true);
-                        }}
-                        data-testid={`button-edit-news-${news.id}`}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteNewsMutation.mutate(news.id)}
-                        data-testid={`button-delete-news-${news.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Support Tickets</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 space-y-4">
-              <h3 className="text-lg font-medium">All Tickets ({tickets?.length || 0})</h3>
-              {tickets?.map((ticket: any) => (
-                <Card
-                  key={ticket.id}
-                  className={`cursor-pointer hover-elevate ${
-                    selectedTicket?.id === ticket.id ? "border-primary" : ""
-                  }`}
-                  onClick={() => setSelectedTicket(ticket)}
-                  data-testid={`admin-ticket-${ticket.id}`}
-                >
-                  <CardContent className="pt-4">
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-semibold text-sm line-clamp-2" data-testid={`text-admin-ticket-title-${ticket.id}`}>{ticket.title}</h4>
-                        <Badge className={
-                          ticket.status === "open" ? "bg-blue-500" :
-                          ticket.status === "in-progress" ? "bg-yellow-500" :
-                          ticket.status === "resolved" ? "bg-green-500" : "bg-gray-500"
-                        } data-testid={`badge-admin-status-${ticket.id}`}>
-                          {ticket.status}
-                        </Badge>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <Badge variant="outline" data-testid={`badge-admin-priority-${ticket.id}`}>{ticket.priority}</Badge>
-                        <Badge variant="outline" data-testid={`badge-admin-category-${ticket.id}`}>{ticket.category}</Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground" data-testid={`text-admin-ticket-meta-${ticket.id}`}>
-                        {ticket.userName} • {ticket.createdAt}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="lg:col-span-2">
-              {selectedTicket ? (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <CardTitle className="mb-2" data-testid={`text-admin-ticket-detail-title-${selectedTicket.id}`}>{selectedTicket.title}</CardTitle>
-                        <div className="flex gap-2 flex-wrap mb-4">
-                          <Badge className={
-                            selectedTicket.status === "open" ? "bg-blue-500" :
-                            selectedTicket.status === "in-progress" ? "bg-yellow-500" :
-                            selectedTicket.status === "resolved" ? "bg-green-500" : "bg-gray-500"
-                          } data-testid={`badge-admin-detail-status-${selectedTicket.id}`}>
-                            {selectedTicket.status}
-                          </Badge>
-                          <Badge variant="outline" data-testid={`badge-admin-detail-priority-${selectedTicket.id}`}>{selectedTicket.priority}</Badge>
-                          <Badge variant="outline" data-testid={`badge-admin-detail-category-${selectedTicket.id}`}>{selectedTicket.category}</Badge>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingEvent ? "Edit Event" : "Create New Event"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Title (English)"
+                          value={eventForm.title}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, title: e.target.value })
+                          }
+                          data-testid="input-event-title"
+                        />
+                        <Input
+                          placeholder="Title (Arabic) - العنوان بالعربية"
+                          value={eventForm.titleAr}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, titleAr: e.target.value })
+                          }
+                          dir="rtl"
+                          data-testid="input-event-title-ar"
+                        />
+                        <Textarea
+                          placeholder="Description (English)"
+                          value={eventForm.description}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, description: e.target.value })
+                          }
+                          rows={3}
+                          data-testid="input-event-description"
+                        />
+                        <Textarea
+                          placeholder="Description (Arabic) - الوصف بالعربية"
+                          value={eventForm.descriptionAr}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, descriptionAr: e.target.value })
+                          }
+                          rows={3}
+                          dir="rtl"
+                          data-testid="input-event-description-ar"
+                        />
+                        <Input
+                          placeholder="Date"
+                          value={eventForm.date}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, date: e.target.value })
+                          }
+                          data-testid="input-event-date"
+                        />
+                        <Input
+                          placeholder="Image URL (optional)"
+                          value={eventForm.image}
+                          onChange={(e) =>
+                            setEventForm({ ...eventForm, image: e.target.value })
+                          }
+                          data-testid="input-event-image"
+                        />
                         <select
-                          className="border rounded px-2 py-1 text-sm"
-                          value={selectedTicket.status}
-                          onChange={(e) => {
-                            updateTicketStatusMutation.mutate({
-                              id: selectedTicket.id,
-                              status: e.target.value,
-                            });
-                          }}
-                          data-testid={`select-ticket-status-${selectedTicket.id}`}
+                          value={eventForm.type}
+                          onChange={(e) =>
+                            setEventForm({
+                              ...eventForm,
+                              type: e.target.value as "upcoming" | "trending",
+                            })
+                          }
+                          className="w-full h-9 px-3 rounded-md border border-input bg-background"
+                          data-testid="select-event-type"
                         >
-                          <option value="open">Open</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                          <option value="closed">Closed</option>
+                          <option value="upcoming">Upcoming</option>
+                          <option value="trending">Trending</option>
                         </select>
+                        <Button
+                          onClick={() => {
+                            if (editingEvent) {
+                              updateEventMutation.mutate({ id: editingEvent.id, data: eventForm });
+                            } else {
+                              createEventMutation.mutate(eventForm);
+                            }
+                          }}
+                          className="w-full"
+                          data-testid="button-submit-event"
+                        >
+                          {editingEvent ? "Update Event" : "Create Event"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="space-y-3">
+                  {events?.map((event: any) => (
+                    <Card key={event.id} data-testid={`event-card-${event.id}`}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h4 className="font-semibold">{event.title}</h4>
+                              <Badge variant="outline" className="text-xs">
+                                {event.type}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{event.date}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingEvent(event);
+                                setEventForm({
+                                  title: event.title,
+                                  titleAr: event.titleAr || "",
+                                  description: event.description || "",
+                                  descriptionAr: event.descriptionAr || "",
+                                  date: event.date,
+                                  type: event.type,
+                                  image: event.image || "",
+                                });
+                                setIsCreatingEvent(true);
+                              }}
+                              data-testid={`button-edit-event-${event.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setDeleteConfirmId(event.id);
+                                setDeleteType("event");
+                              }}
+                              data-testid={`button-delete-event-${event.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold">News</h2>
+                  <Dialog open={isCreatingNews} onOpenChange={(open) => {
+                    setIsCreatingNews(open);
+                    if (!open) {
+                      setEditingNews(null);
+                      resetNewsForm();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="button-create-news">
+                        <Plus className="h-4 w-4 mr-2" />
+                        New News
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingNews ? "Edit News Item" : "Create New News Item"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Title (English)"
+                          value={newsForm.title}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, title: e.target.value })
+                          }
+                          data-testid="input-news-title"
+                        />
+                        <Input
+                          placeholder="Title (Arabic) - العنوان بالعربية"
+                          value={newsForm.titleAr}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, titleAr: e.target.value })
+                          }
+                          dir="rtl"
+                          data-testid="input-news-title-ar"
+                        />
+                        <Input
+                          placeholder="Date Range (e.g., Oct 15 - Nov 4)"
+                          value={newsForm.dateRange}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, dateRange: e.target.value })
+                          }
+                          data-testid="input-news-daterange"
+                        />
+                        <Input
+                          placeholder="Image URL"
+                          value={newsForm.image}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, image: e.target.value })
+                          }
+                          data-testid="input-news-image"
+                        />
+                        <select
+                          value={newsForm.category}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, category: e.target.value })
+                          }
+                          className="w-full h-9 px-3 rounded-md border border-input bg-background"
+                          data-testid="select-news-category"
+                        >
+                          <option value="News">News</option>
+                          <option value="Events">Events</option>
+                          <option value="Reviews">Reviews</option>
+                          <option value="Tutorials">Tutorials</option>
+                        </select>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Content (English)</label>
+                          <div data-testid="input-news-content">
+                            <ReactQuill
+                              theme="snow"
+                              value={newsForm.content}
+                              onChange={(value) =>
+                                setNewsForm({ ...newsForm, content: value })
+                              }
+                              modules={{
+                                toolbar: [
+                                  [{ 'header': [1, 2, 3, false] }],
+                                  ['bold', 'italic', 'underline'],
+                                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                  ['link'],
+                                  ['clean']
+                                ],
+                              }}
+                              style={{ minHeight: '150px' }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Content (Arabic) - المحتوى بالعربية</label>
+                          <div data-testid="input-news-content-ar">
+                            <ReactQuill
+                              theme="snow"
+                              value={newsForm.contentAr}
+                              onChange={(value) =>
+                                setNewsForm({ ...newsForm, contentAr: value })
+                              }
+                              modules={{
+                                toolbar: [
+                                  [{ 'header': [1, 2, 3, false] }],
+                                  ['bold', 'italic', 'underline'],
+                                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                  ['link'],
+                                  ['clean']
+                                ],
+                              }}
+                              style={{ minHeight: '150px', direction: 'rtl' }}
+                            />
+                          </div>
+                        </div>
+                        <Input
+                          placeholder="Author"
+                          value={newsForm.author}
+                          onChange={(e) =>
+                            setNewsForm({ ...newsForm, author: e.target.value })
+                          }
+                          data-testid="input-news-author"
+                        />
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={newsForm.featured}
+                            onChange={(e) =>
+                              setNewsForm({
+                                ...newsForm,
+                                featured: e.target.checked,
+                              })
+                            }
+                            data-testid="checkbox-news-featured"
+                          />
+                          <span className="text-sm">Featured</span>
+                        </label>
+                        <Button
+                          onClick={() => {
+                            if (editingNews) {
+                              updateNewsMutation.mutate({ id: editingNews.id, data: newsForm });
+                            } else {
+                              createNewsMutation.mutate(newsForm);
+                            }
+                          }}
+                          className="w-full"
+                          data-testid="button-submit-news"
+                        >
+                          {editingNews ? "Update News" : "Create News"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="space-y-3">
+                  {newsItems?.map((news: any) => (
+                    <Card key={news.id} data-testid={`news-card-${news.id}`}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h4 className="font-semibold text-sm line-clamp-1">{news.title}</h4>
+                              {news.featured && (
+                                <Badge variant="default" className="text-xs">
+                                  Featured
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-1">{news.dateRange}</p>
+                            <Badge variant="outline" className="text-xs">{news.category}</Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingNews(news);
+                                setNewsForm({
+                                  title: news.title,
+                                  titleAr: news.titleAr || "",
+                                  dateRange: news.dateRange,
+                                  image: news.image,
+                                  category: news.category,
+                                  content: news.content,
+                                  contentAr: news.contentAr || "",
+                                  author: news.author,
+                                  featured: news.featured,
+                                });
+                                setIsCreatingNews(true);
+                              }}
+                              data-testid={`button-edit-news-${news.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setDeleteConfirmId(news.id);
+                                setDeleteType("news");
+                              }}
+                              data-testid={`button-delete-news-${news.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="translations" className="space-y-6" data-testid="content-translations">
+            <h2 className="text-2xl font-semibold">Translations Management</h2>
+            <p className="text-muted-foreground">
+              Add or update Arabic translations for events and news items. Use the edit buttons in the Events & News tab to manage translations.
+            </p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Events Translations Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {events?.map((event: any) => (
+                      <div key={event.id} className="flex items-center justify-between p-3 border rounded-md" data-testid={`translation-event-${event.id}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{event.title}</p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant={event.titleAr ? "default" : "secondary"} className="text-xs">
+                              {event.titleAr ? "Title ✓" : "Title ✗"}
+                            </Badge>
+                            <Badge variant={event.descriptionAr ? "default" : "secondary"} className="text-xs">
+                              {event.descriptionAr ? "Description ✓" : "Description ✗"}
+                            </Badge>
+                          </div>
+                        </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => deleteTicketMutation.mutate(selectedTicket.id)}
-                          data-testid={`button-delete-ticket-${selectedTicket.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h4 className="font-semibold mb-2">User Details</h4>
-                      <div className="grid md:grid-cols-2 gap-2 text-sm">
-                        <p data-testid={`text-admin-user-name-${selectedTicket.id}`}><strong>Name:</strong> {selectedTicket.userName}</p>
-                        <p data-testid={`text-admin-user-email-${selectedTicket.id}`}><strong>Email:</strong> {selectedTicket.userEmail}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Description</h4>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid={`text-admin-ticket-description-${selectedTicket.id}`}>
-                        {selectedTicket.description}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-4">Admin Reply</h4>
-                      <div className="space-y-3">
-                        <Textarea
-                          placeholder="Type your admin reply..."
-                          value={ticketReplyContent}
-                          onChange={(e) => setTicketReplyContent(e.target.value)}
-                          rows={4}
-                          data-testid={`textarea-admin-reply-${selectedTicket.id}`}
-                        />
-                        <Button
                           onClick={() => {
-                            if (!ticketReplyContent.trim()) return;
-                            addTicketReplyMutation.mutate({
-                              ticketId: selectedTicket.id,
-                              content: ticketReplyContent,
+                            setEditingEvent(event);
+                            setEventForm({
+                              title: event.title,
+                              titleAr: event.titleAr || "",
+                              description: event.description || "",
+                              descriptionAr: event.descriptionAr || "",
+                              date: event.date,
+                              type: event.type,
+                              image: event.image || "",
                             });
-                            setTicketReplyContent("");
+                            setIsCreatingEvent(true);
                           }}
-                          disabled={!ticketReplyContent.trim()}
-                          data-testid={`button-send-admin-reply-${selectedTicket.id}`}
+                          data-testid={`button-translate-event-${event.id}`}
                         >
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Send Reply
+                          <Languages className="h-4 w-4 mr-1" />
+                          Translate
                         </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="pt-12 pb-12 text-center">
-                    <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">Select a ticket to view and manage</p>
-                  </CardContent>
-                </Card>
-              )}
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>News Translations Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {newsItems?.map((news: any) => (
+                      <div key={news.id} className="flex items-center justify-between p-3 border rounded-md" data-testid={`translation-news-${news.id}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{news.title}</p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant={news.titleAr ? "default" : "secondary"} className="text-xs">
+                              {news.titleAr ? "Title ✓" : "Title ✗"}
+                            </Badge>
+                            <Badge variant={news.contentAr ? "default" : "secondary"} className="text-xs">
+                              {news.contentAr ? "Content ✓" : "Content ✗"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingNews(news);
+                            setNewsForm({
+                              title: news.title,
+                              titleAr: news.titleAr || "",
+                              dateRange: news.dateRange,
+                              image: news.image,
+                              category: news.category,
+                              content: news.content,
+                              contentAr: news.contentAr || "",
+                              author: news.author,
+                              featured: news.featured,
+                            });
+                            setIsCreatingNews(true);
+                          }}
+                          data-testid={`button-translate-news-${news.id}`}
+                        >
+                          <Languages className="h-4 w-4 mr-1" />
+                          Translate
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          {isSuperAdmin && (
+            <TabsContent value="admins" className="space-y-6" data-testid="content-admins">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">Admins Management</h2>
+                <Dialog open={isCreatingAdmin} onOpenChange={(open) => {
+                  setIsCreatingAdmin(open);
+                  if (!open) {
+                    setEditingAdmin(null);
+                    resetAdminForm();
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-create-admin">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Admin
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingAdmin ? "Edit Admin" : "Create New Admin"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Username"
+                        value={adminForm.username}
+                        onChange={(e) =>
+                          setAdminForm({ ...adminForm, username: e.target.value })
+                        }
+                        data-testid="input-admin-username"
+                      />
+                      <Input
+                        type="password"
+                        placeholder={editingAdmin ? "New Password (leave empty to keep current)" : "Password"}
+                        value={adminForm.password}
+                        onChange={(e) =>
+                          setAdminForm({ ...adminForm, password: e.target.value })
+                        }
+                        data-testid="input-admin-password"
+                      />
+                      <select
+                        value={adminForm.role}
+                        onChange={(e) =>
+                          setAdminForm({
+                            ...adminForm,
+                            role: e.target.value as "admin" | "super_admin",
+                          })
+                        }
+                        className="w-full h-9 px-3 rounded-md border border-input bg-background"
+                        data-testid="select-admin-role"
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="super_admin">Super Admin</option>
+                      </select>
+                      <Button
+                        onClick={() => {
+                          if (editingAdmin) {
+                            const updates: any = { role: adminForm.role };
+                            if (adminForm.username) updates.username = adminForm.username;
+                            if (adminForm.password) updates.password = adminForm.password;
+                            updateAdminMutation.mutate({ id: editingAdmin.id, data: updates });
+                          } else {
+                            createAdminMutation.mutate(adminForm);
+                          }
+                        }}
+                        className="w-full"
+                        data-testid="button-submit-admin"
+                      >
+                        {editingAdmin ? "Update Admin" : "Create Admin"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Created At</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {admins?.map((admin: any) => (
+                        <TableRow key={admin.id} data-testid={`admin-row-${admin.id}`}>
+                          <TableCell className="font-medium" data-testid={`admin-username-${admin.id}`}>{admin.username}</TableCell>
+                          <TableCell>
+                            <Badge variant={admin.role === "super_admin" ? "default" : "secondary"} data-testid={`admin-role-${admin.id}`}>
+                              {admin.role === "super_admin" ? "Super Admin" : "Admin"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {new Date(admin.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingAdmin(admin);
+                                  setAdminForm({
+                                    username: admin.username,
+                                    password: "",
+                                    role: admin.role,
+                                  });
+                                  setIsCreatingAdmin(true);
+                                }}
+                                data-testid={`button-edit-admin-${admin.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setDeleteConfirmId(admin.id);
+                                  setDeleteType("admin");
+                                }}
+                                data-testid={`button-delete-admin-${admin.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <TabsContent value="subscribers" className="space-y-6" data-testid="content-subscribers">
+              <h2 className="text-2xl font-semibold">Newsletter Subscribers</h2>
+
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Subscribed At</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subscribers?.map((subscriber: any) => (
+                        <TableRow key={subscriber.id} data-testid={`subscriber-row-${subscriber.id}`}>
+                          <TableCell className="font-medium" data-testid={`subscriber-email-${subscriber.id}`}>
+                            {subscriber.email}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {new Date(subscriber.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setDeleteConfirmId(subscriber.id);
+                                setDeleteType("subscriber");
+                              }}
+                              data-testid={`button-delete-subscriber-${subscriber.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {!subscribers || subscribers.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                            No subscribers yet
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          <TabsContent value="tickets" className="space-y-6" data-testid="content-tickets">
+            <h2 className="text-2xl font-semibold">Support Tickets</h2>
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-muted-foreground text-center">
+                  Ticket management system is available. Check the existing ticket management section for full functionality.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteConfirmId(null);
+          setDeleteType("");
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the {deleteType}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

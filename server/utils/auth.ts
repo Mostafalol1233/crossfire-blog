@@ -55,3 +55,23 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   (req as any).user = payload;
   next();
 }
+
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+  
+  if (!user || user.role !== 'super_admin') {
+    return res.status(403).json({ error: "Forbidden: Super Admin access required" });
+  }
+  
+  next();
+}
+
+export function requireAdminOrTicketManager(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+  
+  if (!user || !['super_admin', 'admin', 'ticket_manager'].includes(user.role)) {
+    return res.status(403).json({ error: "Forbidden: Admin access required" });
+  }
+  
+  next();
+}
