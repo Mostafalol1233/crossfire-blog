@@ -1,6 +1,6 @@
 [build]
   publish = "dist/public"
-  command = "npm ci && npm run build"
+  command = "npm ci && npm run build && cp -r attached_assets dist/public/assets"
   
 [build.environment]
   NODE_VERSION = "20"
