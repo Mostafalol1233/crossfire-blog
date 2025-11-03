@@ -8,6 +8,7 @@ import {
   TicketReplyModel,
   AdminModel,
   NewsletterSubscriberModel,
+  ProductModel,
   type User,
   type InsertUser,
   type Post,
@@ -26,6 +27,8 @@ import {
   type InsertAdmin,
   type NewsletterSubscriber,
   type InsertNewsletterSubscriber,
+  type Product,
+  type InsertProduct,
 } from "@shared/mongodb-schema";
 import { connectMongoDB } from "./mongodb";
 
@@ -102,6 +105,12 @@ export interface IStorage {
   getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined>;
   createNewsletterSubscriber(subscriber: InsertNewsletterSubscriber): Promise<NewsletterSubscriber>;
   deleteNewsletterSubscriber(id: string): Promise<boolean>;
+
+  getAllProducts(): Promise<Product[]>;
+  getProductById(id: string): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(id: string): Promise<boolean>;
 }
 
 export class MongoDBStorage implements IStorage {
@@ -387,6 +396,31 @@ export class MongoDBStorage implements IStorage {
 
   async deleteNewsletterSubscriber(id: string): Promise<boolean> {
     const result = await NewsletterSubscriberModel.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    const products = await ProductModel.find().sort({ createdAt: -1 });
+    return products;
+  }
+
+  async getProductById(id: string): Promise<Product | undefined> {
+    const product = await ProductModel.findById(id);
+    return product || undefined;
+  }
+
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const newProduct = await ProductModel.create(product);
+    return newProduct;
+  }
+
+  async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
+    const updated = await ProductModel.findByIdAndUpdate(id, product, { new: true });
+    return updated || undefined;
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    const result = await ProductModel.findByIdAndDelete(id);
     return !!result;
   }
 }

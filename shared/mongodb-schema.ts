@@ -84,6 +84,17 @@ export interface INewsletterSubscriber extends Document {
   createdAt: Date;
 }
 
+export interface IProduct extends Document {
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  imageUrl: string;
+  category: string;
+  isPublished: boolean;
+  createdAt: Date;
+}
+
 const UserSchema = new Schema<IUser>({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -167,6 +178,17 @@ const NewsletterSubscriberSchema = new Schema<INewsletterSubscriber>({
   createdAt: { type: Date, default: Date.now },
 });
 
+const ProductSchema = new Schema<IProduct>({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  imageUrl: { type: String, required: true },
+  category: { type: String, required: true },
+  isPublished: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
 export const UserModel = mongoose.model<IUser>('User', UserSchema);
 export const PostModel = mongoose.model<IPost>('Post', PostSchema);
 export const CommentModel = mongoose.model<IComment>('Comment', CommentSchema);
@@ -176,6 +198,7 @@ export const TicketModel = mongoose.model<ITicket>('Ticket', TicketSchema);
 export const TicketReplyModel = mongoose.model<ITicketReply>('TicketReply', TicketReplySchema);
 export const AdminModel = mongoose.model<IAdmin>('Admin', AdminSchema);
 export const NewsletterSubscriberModel = mongoose.model<INewsletterSubscriber>('NewsletterSubscriber', NewsletterSubscriberSchema);
+export const ProductModel = mongoose.model<IProduct>('Product', ProductSchema);
 
 export const insertUserSchema = z.object({
   username: z.string(),
@@ -251,6 +274,16 @@ export const insertNewsletterSubscriberSchema = z.object({
   email: z.string().email(),
 });
 
+export const insertProductSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  price: z.number().positive(),
+  currency: z.string().optional(),
+  imageUrl: z.string(),
+  category: z.string(),
+  isPublished: z.boolean().optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = IUser;
 
@@ -277,3 +310,6 @@ export type Admin = IAdmin;
 
 export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
 export type NewsletterSubscriber = INewsletterSubscriber;
+
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = IProduct;

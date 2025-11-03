@@ -40,7 +40,7 @@ export default function Home() {
         searchQuery === "" ||
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.tags.some((tag) =>
+        (article.tags || []).some((tag) =>
           tag.toLowerCase().includes(searchQuery.toLowerCase())
         );
       return matchesSearch;
@@ -59,7 +59,7 @@ export default function Home() {
   const popularTags = useMemo(() => {
     const tagCounts: Record<string, number> = {};
     allPosts.forEach((post) => {
-      post.tags.forEach((tag) => {
+      (post.tags || []).forEach((tag) => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
     });
