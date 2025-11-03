@@ -34,7 +34,7 @@ export default function Category() {
   const popularTags = useMemo(() => {
     const tagCounts: Record<string, number> = {};
     allPosts.forEach((post) => {
-      post.tags.forEach((tag) => {
+      (post.tags || []).forEach((tag) => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
     });
