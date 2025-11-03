@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             post.title.toLowerCase().includes(searchLower) ||
             post.summary.toLowerCase().includes(searchLower) ||
             post.content.toLowerCase().includes(searchLower) ||
-            post.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+            (post.tags || []).some((tag) => tag.toLowerCase().includes(searchLower))
         );
       }
 
