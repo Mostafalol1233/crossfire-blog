@@ -15,7 +15,13 @@ export async function connectMongoDB() {
       throw new Error('MONGODB_URI environment variable is not defined');
     }
 
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, {
+      maxPoolSize: 5,
+      minPoolSize: 1,
+      maxIdleTimeMS: 30000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
     
     isConnected = true;
     console.log('MongoDB connected successfully');

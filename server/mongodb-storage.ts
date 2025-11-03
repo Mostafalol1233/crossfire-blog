@@ -159,12 +159,12 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllPosts(): Promise<Post[]> {
-    const posts = await PostModel.find().sort({ createdAt: -1 });
+    const posts = await PostModel.find().sort({ createdAt: -1 }).lean();
     return posts;
   }
 
   async getPostById(id: string): Promise<Post | undefined> {
-    const post = await PostModel.findById(id);
+    const post = await PostModel.findById(id).lean();
     return post || undefined;
   }
 
@@ -188,7 +188,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getCommentsByPostId(postId: string): Promise<Comment[]> {
-    const comments = await CommentModel.find({ postId }).sort({ createdAt: -1 });
+    const comments = await CommentModel.find({ postId }).sort({ createdAt: -1 }).lean();
     return comments;
   }
 
@@ -198,7 +198,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllEvents(): Promise<Event[]> {
-    const events = await EventModel.find();
+    const events = await EventModel.find().lean();
     return events;
   }
 
@@ -213,7 +213,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllNews(): Promise<NewsItem[]> {
-    const news = await NewsModel.find().sort({ createdAt: -1 });
+    const news = await NewsModel.find().sort({ createdAt: -1 }).lean();
     return news.map((item) => ({
       id: String(item._id),
       title: item.title,
@@ -231,7 +231,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getNewsById(id: string): Promise<NewsItem | undefined> {
-    const item = await NewsModel.findById(id);
+    const item = await NewsModel.findById(id).lean();
     if (!item) return undefined;
     return {
       id: String(item._id),
@@ -296,17 +296,17 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllTickets(): Promise<Ticket[]> {
-    const tickets = await TicketModel.find().sort({ createdAt: -1 });
+    const tickets = await TicketModel.find().sort({ createdAt: -1 }).lean();
     return tickets;
   }
 
   async getTicketById(id: string): Promise<Ticket | undefined> {
-    const ticket = await TicketModel.findById(id);
+    const ticket = await TicketModel.findById(id).lean();
     return ticket || undefined;
   }
 
   async getTicketsByEmail(email: string): Promise<Ticket[]> {
-    const tickets = await TicketModel.find({ userEmail: email }).sort({ createdAt: -1 });
+    const tickets = await TicketModel.find({ userEmail: email }).sort({ createdAt: -1 }).lean();
     return tickets;
   }
 
@@ -330,7 +330,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getTicketReplies(ticketId: string): Promise<TicketReply[]> {
-    const replies = await TicketReplyModel.find({ ticketId }).sort({ createdAt: 1 });
+    const replies = await TicketReplyModel.find({ ticketId }).sort({ createdAt: 1 }).lean();
     return replies;
   }
 
@@ -340,17 +340,17 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllAdmins(): Promise<Admin[]> {
-    const admins = await AdminModel.find().sort({ createdAt: -1 });
+    const admins = await AdminModel.find().sort({ createdAt: -1 }).lean();
     return admins;
   }
 
   async getAdminById(id: string): Promise<Admin | undefined> {
-    const admin = await AdminModel.findById(id);
+    const admin = await AdminModel.findById(id).lean();
     return admin || undefined;
   }
 
   async getAdminByUsername(username: string): Promise<Admin | undefined> {
-    const admin = await AdminModel.findOne({ username });
+    const admin = await AdminModel.findOne({ username }).lean();
     return admin || undefined;
   }
 
@@ -370,7 +370,7 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getEventById(id: string): Promise<Event | undefined> {
-    const event = await EventModel.findById(id);
+    const event = await EventModel.findById(id).lean();
     return event || undefined;
   }
 
@@ -380,12 +380,12 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
-    const subscribers = await NewsletterSubscriberModel.find().sort({ createdAt: -1 });
+    const subscribers = await NewsletterSubscriberModel.find().sort({ createdAt: -1 }).lean();
     return subscribers;
   }
 
   async getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined> {
-    const subscriber = await NewsletterSubscriberModel.findOne({ email });
+    const subscriber = await NewsletterSubscriberModel.findOne({ email }).lean();
     return subscriber || undefined;
   }
 
@@ -400,12 +400,12 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getAllProducts(): Promise<Product[]> {
-    const products = await ProductModel.find().sort({ createdAt: -1 });
+    const products = await ProductModel.find().sort({ createdAt: -1 }).lean();
     return products;
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
-    const product = await ProductModel.findById(id);
+    const product = await ProductModel.findById(id).lean();
     return product || undefined;
   }
 
