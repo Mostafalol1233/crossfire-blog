@@ -52,11 +52,15 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Shield,
+  Package,
+  Star,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ScraperManager } from "@/components/ScraperManager";
+import Products from "@/pages/admin/Products";
+import Reviews from "@/pages/admin/Reviews";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
@@ -104,6 +108,7 @@ export default function Admin() {
     author: "Bimora Team",
     featured: false,
     readingTime: 5,
+    videoUrl: "",
   });
 
   const [eventForm, setEventForm] = useState({
@@ -438,6 +443,7 @@ export default function Admin() {
       author: "Bimora Team",
       featured: false,
       readingTime: 5,
+      videoUrl: "",
     });
   };
 
@@ -565,7 +571,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6" data-testid="tabs-admin">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
             <TabsTrigger value="dashboard" data-testid="tab-dashboard">
               <LayoutDashboard className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -579,8 +585,12 @@ export default function Admin() {
               <span className="hidden sm:inline">Events & News</span>
             </TabsTrigger>
             <TabsTrigger value="products" data-testid="tab-products">
-              <Newspaper className="h-4 w-4 mr-2" />
+              <Package className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Products</span>
+            </TabsTrigger>
+            <TabsTrigger value="reviews" data-testid="tab-reviews">
+              <Star className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Reviews</span>
             </TabsTrigger>
             <TabsTrigger value="translations" data-testid="tab-translations">
               <Languages className="h-4 w-4 mr-2" />
@@ -770,6 +780,14 @@ export default function Admin() {
                       }
                       data-testid="input-post-image"
                     />
+                    <Input
+                      placeholder="YouTube Video URL (optional) - https://www.youtube.com/watch?v=..."
+                      value={postForm.videoUrl}
+                      onChange={(e) =>
+                        setPostForm({ ...postForm, videoUrl: e.target.value })
+                      }
+                      data-testid="input-post-video-url"
+                    />
                     <select
                       value={postForm.category}
                       onChange={(e) =>
@@ -880,6 +898,7 @@ export default function Admin() {
                               author: post.author,
                               featured: post.featured,
                               readingTime: post.readingTime,
+                              videoUrl: post.videoUrl || "",
                             });
                             setIsCreatingPost(true);
                           }}
@@ -1285,208 +1304,11 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="products" className="space-y-6" data-testid="content-products">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Products Management</h2>
-              <Dialog open={isCreatingProduct} onOpenChange={(open) => {
-                setIsCreatingProduct(open);
-                if (!open) {
-                  setEditingProduct(null);
-                  resetProductForm();
-                }
-              }}>
-                <DialogTrigger asChild>
-                  <Button data-testid="button-create-product">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Product
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingProduct ? "Edit Product" : "Create New Product"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Input
-                      placeholder="Product Title"
-                      value={productForm.title}
-                      onChange={(e) =>
-                        setProductForm({ ...productForm, title: e.target.value })
-                      }
-                      data-testid="input-product-title"
-                    />
-                    <Textarea
-                      placeholder="Product Description"
-                      value={productForm.description}
-                      onChange={(e) =>
-                        setProductForm({ ...productForm, description: e.target.value })
-                      }
-                      rows={4}
-                      data-testid="input-product-description"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        type="number"
-                        placeholder="Price"
-                        value={productForm.price || ""}
-                        onChange={(e) =>
-                          setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })
-                        }
-                        data-testid="input-product-price"
-                      />
-                      <select
-                        value={productForm.currency}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            currency: e.target.value,
-                          })
-                        }
-                        className="w-full h-9 px-3 rounded-md border border-input bg-background"
-                        data-testid="select-product-currency"
-                      >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                      </select>
-                    </div>
-                    <Input
-                      placeholder="Image URL"
-                      value={productForm.imageUrl}
-                      onChange={(e) =>
-                        setProductForm({ ...productForm, imageUrl: e.target.value })
-                      }
-                      data-testid="input-product-image"
-                    />
-                    <select
-                      value={productForm.category}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          category: e.target.value,
-                        })
-                      }
-                      className="w-full h-9 px-3 rounded-md border border-input bg-background"
-                      data-testid="select-product-category"
-                    >
-                      <option value="New">New</option>
-                      <option value="Reviews">Reviews</option>
-                      <option value="Featured">Featured</option>
-                      <option value="Sale">Sale</option>
-                    </select>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={productForm.isPublished}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            isPublished: e.target.checked,
-                          })
-                        }
-                        data-testid="checkbox-product-published"
-                      />
-                      <span className="text-sm">Published</span>
-                    </label>
-                    <Button
-                      onClick={() => {
-                        if (editingProduct) {
-                          updateProductMutation.mutate({ id: editingProduct._id, data: productForm });
-                        } else {
-                          createProductMutation.mutate(productForm);
-                        }
-                      }}
-                      className="w-full"
-                      data-testid="button-submit-product"
-                    >
-                      {editingProduct ? "Update Product" : "Create Product"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Products />
+          </TabsContent>
 
-            <div className="space-y-3">
-              {products?.map((product: any) => (
-                <Card key={product._id} data-testid={`product-card-${product._id}`}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-4 flex-1">
-                        {product.imageUrl && (
-                          <img 
-                            src={product.imageUrl} 
-                            alt={product.title}
-                            className="w-20 h-20 object-cover rounded-md"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 className="font-semibold">{product.title}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {product.category}
-                            </Badge>
-                            {product.isPublished && (
-                              <Badge variant="default" className="text-xs">
-                                Published
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {product.description}
-                          </p>
-                          <p className="text-sm font-semibold">
-                            {product.price} {product.currency}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setEditingProduct(product);
-                            setProductForm({
-                              title: product.title,
-                              description: product.description,
-                              price: product.price,
-                              currency: product.currency,
-                              imageUrl: product.imageUrl,
-                              category: product.category,
-                              isPublished: product.isPublished,
-                            });
-                            setIsCreatingProduct(true);
-                          }}
-                          data-testid={`button-edit-product-${product._id}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setDeleteConfirmId(product._id);
-                            setDeleteType("product");
-                          }}
-                          data-testid={`button-delete-product-${product._id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {(!products || products.length === 0) && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-center text-muted-foreground">
-                      No products yet. Click "New Product" to create one.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+          <TabsContent value="reviews" className="space-y-6" data-testid="content-reviews">
+            <Reviews />
           </TabsContent>
 
           <TabsContent value="translations" className="space-y-6" data-testid="content-translations">

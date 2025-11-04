@@ -9,6 +9,7 @@ import {
   AdminModel,
   NewsletterSubscriberModel,
   ProductModel,
+  ReviewModel,
   type User,
   type InsertUser,
   type Post,
@@ -29,6 +30,8 @@ import {
   type InsertNewsletterSubscriber,
   type Product,
   type InsertProduct,
+  type Review,
+  type InsertReview,
 } from "@shared/mongodb-schema";
 import { connectMongoDB } from "./mongodb";
 
@@ -111,6 +114,11 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
   deleteProduct(id: string): Promise<boolean>;
+
+  getAllReviews(): Promise<Review[]>;
+  getReviewsByProductId(productId: string): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  deleteReview(id: string): Promise<boolean>;
 }
 
 export class MongoDBStorage implements IStorage {
@@ -421,6 +429,26 @@ export class MongoDBStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<boolean> {
     const result = await ProductModel.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async getAllReviews(): Promise<Review[]> {
+    const reviews = await ReviewModel.find().sort({ createdAt: -1 }).lean();
+    return reviews;
+  }
+
+  async getReviewsByProductId(productId: string): Promise<Review[]> {
+    const reviews = await ReviewModel.find({ productId }).sort({ createdAt: -1 }).lean();
+    return reviews;
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const newReview = await ReviewModel.create(review);
+    return newReview;
+  }
+
+  async deleteReview(id: string): Promise<boolean> {
+    const result = await ReviewModel.findByIdAndDelete(id);
     return !!result;
   }
 }

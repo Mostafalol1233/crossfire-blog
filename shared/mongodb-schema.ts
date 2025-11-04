@@ -17,6 +17,7 @@ export interface IPost extends Document {
   views: number;
   readingTime: number;
   featured: boolean;
+  videoUrl?: string;
   createdAt: Date;
 }
 
@@ -87,11 +88,25 @@ export interface INewsletterSubscriber extends Document {
 export interface IProduct extends Document {
   title: string;
   description: string;
-  price: number;
-  currency: string;
-  imageUrl: string;
+  image: string;
   category: string;
-  isPublished: boolean;
+  normalPrice: number;
+  premiumPrice?: number;
+  vipPrice?: number;
+  stock: number;
+  inStock: boolean;
+  seller: string;
+  featured: boolean;
+  createdAt: Date;
+}
+
+export interface IReview extends Document {
+  productId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  sellerName: string;
+  sellerRating: number;
   createdAt: Date;
 }
 
@@ -111,6 +126,7 @@ const PostSchema = new Schema<IPost>({
   views: { type: Number, default: 0 },
   readingTime: { type: Number, required: true },
   featured: { type: Boolean, default: false },
+  videoUrl: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -181,11 +197,25 @@ const NewsletterSubscriberSchema = new Schema<INewsletterSubscriber>({
 const ProductSchema = new Schema<IProduct>({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  price: { type: Number, required: true },
-  currency: { type: String, default: 'USD' },
-  imageUrl: { type: String, required: true },
+  image: { type: String, required: true },
   category: { type: String, required: true },
-  isPublished: { type: Boolean, default: false },
+  normalPrice: { type: Number, required: true },
+  premiumPrice: { type: Number },
+  vipPrice: { type: Number },
+  stock: { type: Number, default: 0 },
+  inStock: { type: Boolean, default: true },
+  seller: { type: String, required: true },
+  featured: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const ReviewSchema = new Schema<IReview>({
+  productId: { type: String, required: true },
+  userName: { type: String, required: true },
+  rating: { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String, required: true },
+  sellerName: { type: String, required: true },
+  sellerRating: { type: Number, required: true, min: 1, max: 5 },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -199,6 +229,7 @@ export const TicketReplyModel = mongoose.model<ITicketReply>('TicketReply', Tick
 export const AdminModel = mongoose.model<IAdmin>('Admin', AdminSchema);
 export const NewsletterSubscriberModel = mongoose.model<INewsletterSubscriber>('NewsletterSubscriber', NewsletterSubscriberSchema);
 export const ProductModel = mongoose.model<IProduct>('Product', ProductSchema);
+export const ReviewModel = mongoose.model<IReview>('Review', ReviewSchema);
 
 export const insertUserSchema = z.object({
   username: z.string(),
@@ -215,6 +246,7 @@ export const insertPostSchema = z.object({
   author: z.string(),
   readingTime: z.number(),
   featured: z.boolean().optional(),
+  videoUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export const insertCommentSchema = z.object({
@@ -277,11 +309,24 @@ export const insertNewsletterSubscriberSchema = z.object({
 export const insertProductSchema = z.object({
   title: z.string(),
   description: z.string(),
-  price: z.number().positive(),
-  currency: z.string().optional(),
-  imageUrl: z.string(),
+  image: z.string(),
   category: z.string(),
-  isPublished: z.boolean().optional(),
+  normalPrice: z.number().positive(),
+  premiumPrice: z.number().positive().optional(),
+  vipPrice: z.number().positive().optional(),
+  stock: z.number().int().nonnegative().optional(),
+  inStock: z.boolean().optional(),
+  seller: z.string(),
+  featured: z.boolean().optional(),
+});
+
+export const insertReviewSchema = z.object({
+  productId: z.string(),
+  userName: z.string(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string(),
+  sellerName: z.string(),
+  sellerRating: z.number().int().min(1).max(5),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -313,3 +358,6 @@ export type NewsletterSubscriber = INewsletterSubscriber;
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = IProduct;
+
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = IReview;

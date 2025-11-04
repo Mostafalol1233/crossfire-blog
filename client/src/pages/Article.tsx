@@ -10,6 +10,24 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import tutorialImage from "@assets/generated_images/Tutorial_article_cover_image_2152de25.png";
 
+function extractYouTubeVideoId(url: string): string | null {
+  if (!url) return null;
+  
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  
+  return null;
+}
+
 export default function Article() {
   const { id } = useParams();
   const { t } = useLanguage();
@@ -143,6 +161,24 @@ export default function Article() {
               />
             )}
           </div>
+
+          {article.videoUrl && extractYouTubeVideoId(article.videoUrl) && (
+            <div className="mb-8">
+              <div 
+                className="relative w-full"
+                style={{ paddingBottom: "56.25%" }}
+              >
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full rounded-md"
+                  src={`https://www.youtube.com/embed/${extractYouTubeVideoId(article.videoUrl)}`}
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  data-testid="iframe-youtube-video"
+                />
+              </div>
+            </div>
+          )}
 
           {article.summary && (
             <div className="bg-card border border-border rounded-md p-6 mb-8">

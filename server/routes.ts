@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema, insertProductSchema } from "@shared/mongodb-schema";
+import { insertPostSchema, insertCommentSchema, insertEventSchema, insertNewsSchema, insertTicketSchema, insertTicketReplySchema, insertAdminSchema, insertNewsletterSubscriberSchema, insertProductSchema, insertReviewSchema } from "@shared/mongodb-schema";
 import { generateToken, verifyAdminPassword, requireAuth, requireSuperAdmin, requireAdminOrTicketManager, comparePassword, hashPassword } from "./utils/auth";
 import { calculateReadingTime, generateSummary, formatDate } from "./utils/helpers";
 import { scraper } from "./scraper";
@@ -837,6 +837,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!deleted) {
         return res.status(404).json({ error: "Product not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Review routes
+  app.get("/api/reviews", async (req, res) => {
+    try {
+      const reviews = await storage.getAllReviews();
+      res.json(reviews);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/reviews/product/:productId", async (req, res) => {
+    try {
+      const reviews = await storage.getReviewsByProductId(req.params.productId);
+      res.json(reviews);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const data = insertReviewSchema.parse(req.body);
+      const review = await storage.createReview(data);
+      res.status(201).json(review);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/reviews/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteReview(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Review not found" });
       }
 
       res.json({ success: true });
