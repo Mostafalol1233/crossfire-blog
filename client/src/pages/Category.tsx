@@ -5,6 +5,7 @@ import { ArticleCard, type Article } from "@/components/ArticleCard";
 import { Sidebar } from "@/components/Sidebar";
 import { useLanguage } from "@/components/LanguageProvider";
 import { CategoryFilter, type Category } from "@/components/CategoryFilter";
+import { EventsRibbon, type Event } from "@/components/EventsRibbon";
 
 interface NewsItem {
   id: string;
@@ -31,6 +32,10 @@ export default function Category() {
   const { data: newsItems = [], isLoading: newsLoading } = useQuery<NewsItem[]>({
     queryKey: ["/api/news"],
     enabled: category?.toLowerCase() === "news",
+  });
+
+  const { data: allEvents = [] } = useQuery<Event[]>({
+    queryKey: ["/api/events"],
   });
 
   const isLoading = postsLoading || newsLoading;
@@ -140,6 +145,7 @@ export default function Category() {
 
   return (
     <div className="min-h-screen">
+      {allEvents.length > 0 && <EventsRibbon events={allEvents} />}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
           <main className="lg:col-span-8 space-y-8 md:space-y-12">
