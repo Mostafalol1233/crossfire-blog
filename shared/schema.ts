@@ -21,6 +21,7 @@ export const posts = pgTable("posts", {
   views: integer("views").notNull().default(0),
   readingTime: integer("reading_time").notNull(),
   featured: boolean("featured").notNull().default(false),
+  videoUrl: text("video_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
