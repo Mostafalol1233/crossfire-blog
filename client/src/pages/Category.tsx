@@ -6,21 +6,76 @@ import { Sidebar } from "@/components/Sidebar";
 import { useLanguage } from "@/components/LanguageProvider";
 import { CategoryFilter, type Category } from "@/components/CategoryFilter";
 
+interface NewsItem {
+  id: string;
+  title: string;
+  dateRange?: string;
+  date?: string;
+  image: string;
+  category: string;
+  content: string;
+  summary?: string;
+  author: string;
+  featured?: boolean;
+  createdAt?: string;
+}
+
 export default function Category() {
   const { t } = useLanguage();
   const { category } = useParams<{ category: string }>();
 
-  const { data: allPosts = [], isLoading } = useQuery<Article[]>({
+  const { data: allPosts = [], isLoading: postsLoading } = useQuery<Article[]>({
     queryKey: ["/api/posts"],
   });
+
+  const { data: newsItems = [], isLoading: newsLoading } = useQuery<NewsItem[]>({
+    queryKey: ["/api/news"],
+    enabled: category?.toLowerCase() === "news",
+  });
+
+  const isLoading = postsLoading || newsLoading;
 
   const filteredArticles = useMemo(() => {
     if (!category) return [];
     
-    return allPosts.filter((article) => {
-      return article.category.toLowerCase() === category.toLowerCase();
+    let articles: Article[] = [];
+    
+    if (category.toLowerCase() === "news") {
+      const newsAsArticles: Article[] = newsItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        summary: item.summary || item.content.substring(0, 150),
+        category: item.category,
+        image: item.image,
+        author: item.author,
+        date: item.dateRange || item.date || 'Recent',
+        readingTime: Math.ceil((item.content?.length || 0) / 1000),
+        views: 0,
+        tags: [],
+        featured: item.featured,
+      }));
+      
+      const newsPosts = allPosts.filter(
+        (article) => article.category.toLowerCase() === "news"
+      );
+      
+      articles = [...newsAsArticles, ...newsPosts];
+    } else if (category.toLowerCase() === "events") {
+      articles = allPosts.filter(
+        (article) => article.category.toLowerCase() === "events"
+      );
+    } else {
+      articles = allPosts.filter(
+        (article) => article.category.toLowerCase() === category.toLowerCase()
+      );
+    }
+    
+    return articles.sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return 0;
     });
-  }, [allPosts, category]);
+  }, [allPosts, newsItems, category]);
 
   const recentPosts = useMemo(() => {
     return allPosts.slice(0, 3).map((post) => ({
