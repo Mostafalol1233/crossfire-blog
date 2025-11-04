@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "./LanguageProvider";
 import { Link } from "wouter";
 import { Eye, Star } from "lucide-react";
 
@@ -27,6 +26,12 @@ interface SidebarProps {
   popularTags: Tag[];
   mostViewed: PopularPost[];
   bimoraPicks: RecentPost[];
+  translations?: {
+    recentPosts?: string;
+    popularTags?: string;
+    mostViewed?: string;
+    bimoraPicks?: string;
+  };
 }
 
 export function Sidebar({
@@ -34,14 +39,20 @@ export function Sidebar({
   popularTags,
   mostViewed,
   bimoraPicks,
+  translations = {},
 }: SidebarProps) {
-  const { t } = useLanguage();
+  const {
+    recentPosts: recentPostsLabel = "Recent Posts",
+    popularTags: popularTagsLabel = "Popular Tags",
+    mostViewed: mostViewedLabel = "Most Viewed",
+    bimoraPicks: bimoraPicksLabel = "Bimora's Picks"
+  } = translations;
 
   return (
     <aside className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">{t("recentPosts")}</CardTitle>
+          <CardTitle className="text-lg">{recentPostsLabel}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {recentPosts.map((post) => (
@@ -69,7 +80,7 @@ export function Sidebar({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">{t("popularTags")}</CardTitle>
+          <CardTitle className="text-lg">{popularTagsLabel}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -89,7 +100,7 @@ export function Sidebar({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">{t("mostViewed")}</CardTitle>
+          <CardTitle className="text-lg">{mostViewedLabel}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {mostViewed.map((post, index) => (
@@ -120,7 +131,7 @@ export function Sidebar({
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Star className="h-5 w-5 text-primary fill-primary" />
-            {t("bimoraPicks")}
+            {bimoraPicksLabel}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

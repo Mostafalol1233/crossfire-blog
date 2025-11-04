@@ -2,7 +2,6 @@ import { Link } from "wouter";
 import { Clock, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "./LanguageProvider";
 
 export interface Article {
   id: string;
@@ -20,10 +19,14 @@ export interface Article {
 
 interface ArticleCardProps {
   article: Article;
+  translations?: {
+    featured?: string;
+    readingTime?: string;
+  };
 }
 
-export function ArticleCard({ article }: ArticleCardProps) {
-  const { t } = useLanguage();
+export function ArticleCard({ article, translations = {} }: ArticleCardProps) {
+  const { featured = "Featured", readingTime = "min read" } = translations;
 
   return (
     <Card
@@ -43,7 +46,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
               className="absolute top-4 left-4"
               data-testid="badge-featured"
             >
-              {t("featured")}
+              {featured}
             </Badge>
           )}
           <Badge
@@ -85,7 +88,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>
-                {article.readingTime} {t("readingTime")}
+                {article.readingTime} {readingTime}
               </span>
             </div>
             <span>•</span>

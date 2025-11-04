@@ -32,6 +32,8 @@ export default function Home() {
     date: "Today",
     readingTime: 1,
     views: 0,
+    tags: [],
+    featured: false,
   };
 
   const filteredArticles = useMemo(() => {
@@ -127,7 +129,14 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 {filteredArticles.map((article) => (
-                  <ArticleCard key={article.id} article={article} />
+                  <ArticleCard 
+                    key={article.id} 
+                    article={article}
+                    translations={{
+                      featured: t("featured"),
+                      readingTime: t("readingTime"),
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -140,6 +149,12 @@ export default function Home() {
                 popularTags={popularTags}
                 mostViewed={mostViewed}
                 bimoraPicks={bimoraPicks}
+                translations={{
+                  recentPosts: t("recentPosts"),
+                  popularTags: t("popularTags"),
+                  mostViewed: t("mostViewed"),
+                  bimoraPicks: t("bimoraPicks"),
+                }}
               />
             </div>
           </aside>
